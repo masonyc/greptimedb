@@ -255,6 +255,8 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -270,29 +272,22 @@
 // limitations under the License.
 
 </span><span class="doccomment">//! Table and TableEngine requests
-</span><span class="kw">use </span>std::collections::HashMap;
+</span><span class="kw">mod </span>insert;
+
+<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>common_base::readable_size::ReadableSize;
 <span class="kw">use </span>datatypes::prelude::VectorRef;
 <span class="kw">use </span>datatypes::schema::{ColumnSchema, RawSchema};
+<span class="kw">pub use </span>insert::InsertRequest;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>store_api::storage::RegionNumber;
 
 <span class="kw">use </span><span class="kw">crate</span>::error;
 <span class="kw">use </span><span class="kw">crate</span>::error::ParseTableOptionSnafu;
 <span class="kw">use </span><span class="kw">crate</span>::metadata::TableId;
-
-<span class="doccomment">/// Insert request
-</span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>InsertRequest {
-    <span class="kw">pub </span>catalog_name: String,
-    <span class="kw">pub </span>schema_name: String,
-    <span class="kw">pub </span>table_name: String,
-    <span class="kw">pub </span>columns_values: HashMap&lt;String, VectorRef&gt;,
-    <span class="kw">pub </span>region_number: RegionNumber,
-}
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>CreateDatabaseRequest {
@@ -447,23 +442,32 @@
     </span><span class="kw">pub </span>key_column_values: HashMap&lt;String, VectorRef&gt;,
 }
 
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>CopyDirection {
+    Export,
+    Import,
+}
+
 <span class="doccomment">/// Copy table request
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>CopyTableRequest {
     <span class="kw">pub </span>catalog_name: String,
     <span class="kw">pub </span>schema_name: String,
     <span class="kw">pub </span>table_name: String,
-    <span class="kw">pub </span>file_name: String,
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CopyTableFromRequest {
-    <span class="kw">pub </span>catalog_name: String,
-    <span class="kw">pub </span>schema_name: String,
-    <span class="kw">pub </span>table_name: String,
+    <span class="kw">pub </span>location: String,
     <span class="kw">pub </span>connection: HashMap&lt;String, String&gt;,
     <span class="kw">pub </span>pattern: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    <span class="kw">pub </span>from: String,
+    <span class="kw">pub </span>direction: CopyDirection,
+}
+
+<span class="attr">#[derive(Debug, Clone, Default)]
+</span><span class="kw">pub struct </span>FlushTableRequest {
+    <span class="kw">pub </span>catalog_name: String,
+    <span class="kw">pub </span>schema_name: String,
+    <span class="kw">pub </span>table_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>region_number: <span class="prelude-ty">Option</span>&lt;RegionNumber&gt;,
+    <span class="doccomment">/// Wait until the flush is done.
+    </span><span class="kw">pub </span>wait: <span class="prelude-ty">Option</span>&lt;bool&gt;,
 }
 
 <span class="attr">#[cfg(test)]

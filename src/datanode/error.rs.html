@@ -659,6 +659,42 @@
 <a href="#659" id="659">659</a>
 <a href="#660" id="660">660</a>
 <a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -675,11 +711,10 @@
 
 </span><span class="kw">use </span>std::any::Any;
 
+<span class="kw">use </span>common_datasource::error::Error <span class="kw">as </span>DataSourceError;
 <span class="kw">use </span>common_error::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>common_procedure::ProcedureId;
-<span class="kw">use </span>common_recordbatch::error::Error <span class="kw">as </span>RecordBatchError;
 <span class="kw">use </span>datafusion::parquet;
-<span class="kw">use </span>datatypes::prelude::ConcreteDataType;
 <span class="kw">use </span>storage::error::Error <span class="kw">as </span>StorageError;
 <span class="kw">use </span>table::error::Error <span class="kw">as </span>TableError;
 <span class="kw">use </span>url::ParseError;
@@ -692,6 +727,24 @@
 </span><span class="kw">pub enum </span>Error {
     <span class="attr">#[snafu(display(<span class="string">&quot;Failed to execute sql, source: {}&quot;</span>, source))]
     </span>ExecuteSql {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: query::error::Error,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to plan statement, source: {}&quot;</span>, source))]
+    </span>PlanStatement {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: query::error::Error,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to execute statement, source: {}&quot;</span>, source))]
+    </span>ExecuteStatement {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: query::error::Error,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to execute logical plan, source: {}&quot;</span>, source))]
+    </span>ExecuteLogicalPlan {
         <span class="attr">#[snafu(backtrace)]
         </span>source: query::error::Error,
     },
@@ -767,24 +820,6 @@
     ))]
     </span>ColumnValuesNumberMismatch { columns: usize, values: usize },
 
-    <span class="attr">#[snafu(display(
-        <span class="string">&quot;Column type mismatch, column: {}, expected type: {:?}, actual: {:?}&quot;</span>,
-        column,
-        expected,
-        actual,
-    ))]
-    </span>ColumnTypeMismatch {
-        column: String,
-        expected: ConcreteDataType,
-        actual: ConcreteDataType,
-    },
-
-    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to collect record batch, source: {}&quot;</span>, source))]
-    </span>CollectRecords {
-        <span class="attr">#[snafu(backtrace)]
-        </span>source: RecordBatchError,
-    },
-
     <span class="attr">#[snafu(display(<span class="string">&quot;Failed to parse sql value, source: {}&quot;</span>, source))]
     </span>ParseSqlValue {
         <span class="attr">#[snafu(backtrace)]
@@ -807,6 +842,13 @@
         source
     ))]
     </span>Delete {
+        table_name: String,
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: TableError,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to flush table: {}, source: {}&quot;</span>, table_name, source))]
+    </span>FlushTable {
         table_name: String,
         <span class="attr">#[snafu(backtrace)]
         </span>source: TableError,
@@ -854,7 +896,13 @@
 
     <span class="attr">#[snafu(display(<span class="string">&quot;Failed to build backend, source: {}&quot;</span>, source))]
     </span>BuildBackend {
-        source: object_store::Error,
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: DataSourceError,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to parse url, source: {}&quot;</span>, source))]
+    </span>ParseUrl {
+        source: DataSourceError,
         backtrace: Backtrace,
     },
 
@@ -883,6 +931,12 @@
     </span>BuildRegex {
         backtrace: Backtrace,
         source: regex::Error,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to list objects, source: {}&quot;</span>, source))]
+    </span>ListObjects {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: DataSourceError,
     },
 
     <span class="attr">#[snafu(display(<span class="string">&quot;Failed to parse the data, source: {}&quot;</span>, source))]
@@ -1111,13 +1165,6 @@
         source: object_store::Error,
     },
 
-    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to lists object in path: {}, source: {}&quot;</span>, path, source))]
-    </span>ListObjects {
-        path: String,
-        backtrace: Backtrace,
-        source: object_store::Error,
-    },
-
     <span class="attr">#[snafu(display(<span class="string">&quot;Unrecognized table option: {}&quot;</span>, source))]
     </span>UnrecognizedTableOption {
         <span class="attr">#[snafu(backtrace)]
@@ -1143,6 +1190,24 @@
         <span class="attr">#[snafu(backtrace)]
         </span>source: common_procedure::error::Error,
     },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to close table engine, source: {}&quot;</span>, source))]
+    </span>CloseTableEngine {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: BoxedError,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to shutdown server, source: {}&quot;</span>, source))]
+    </span>ShutdownServer {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: servers::error::Error,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Failed to shutdown instance, source: {}&quot;</span>, source))]
+    </span>ShutdownInstance {
+        <span class="attr">#[snafu(backtrace)]
+        </span>source: BoxedError,
+    },
 }
 
 <span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
@@ -1151,7 +1216,12 @@
     <span class="kw">fn </span>status_code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StatusCode {
         <span class="kw">use </span>Error::<span class="kw-2">*</span>;
         <span class="kw">match </span><span class="self">self </span>{
-            ExecuteSql { source } | DescribeStatement { source } =&gt; source.status_code(),
+            ExecuteSql { source }
+            | PlanStatement { source }
+            | ExecuteStatement { source }
+            | ExecuteLogicalPlan { source }
+            | DescribeStatement { source } =&gt; source.status_code(),
+
             DecodeLogicalPlan { source } =&gt; source.status_code(),
             NewCatalog { source } | RegisterSchema { source } =&gt; source.status_code(),
             FindTable { source, .. } =&gt; source.status_code(),
@@ -1159,11 +1229,10 @@
                 source.status_code()
             }
             DropTable { source, .. } =&gt; source.status_code(),
+            FlushTable { source, .. } =&gt; source.status_code(),
 
             Insert { source, .. } =&gt; source.status_code(),
             Delete { source, .. } =&gt; source.status_code(),
-            CollectRecords { source, .. } =&gt; source.status_code(),
-
             TableNotFound { .. } =&gt; StatusCode::TableNotFound,
             ColumnNotFound { .. } =&gt; StatusCode::TableColumnNotFound,
 
@@ -1176,7 +1245,6 @@
             ConvertSchema { source, .. } | VectorComputation { source } =&gt; source.status_code(),
 
             ColumnValuesNumberMismatch { .. }
-            | ColumnTypeMismatch { .. }
             | InvalidSql { .. }
             | InvalidUrl { .. }
             | InvalidPath { .. }
@@ -1196,7 +1264,8 @@
             | DatabaseNotFound { .. }
             | MissingNodeId { .. }
             | MissingMetasrvOpts { .. }
-            | ColumnNoneDefaultValue { .. } =&gt; StatusCode::InvalidArguments,
+            | ColumnNoneDefaultValue { .. }
+            | ParseUrl { .. } =&gt; StatusCode::InvalidArguments,
 
             <span class="comment">// TODO(yingwen): Further categorize http error.
             </span>StartServer { .. }
@@ -1211,7 +1280,10 @@
             | BuildParquetRecordBatchStream { .. }
             | InvalidSchema { .. }
             | ParseDataTypes { .. }
-            | IncorrectInternalState { .. } =&gt; StatusCode::Internal,
+            | IncorrectInternalState { .. }
+            | ShutdownServer { .. }
+            | ShutdownInstance { .. }
+            | CloseTableEngine { .. } =&gt; StatusCode::Internal,
 
             BuildBackend { .. }
             | InitBackend { .. }

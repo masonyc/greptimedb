@@ -421,6 +421,21 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -444,9 +459,6 @@
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>async_trait::async_trait;
-<span class="kw">use </span>catalog::table_source::DfTableSourceProvider;
-<span class="kw">use </span>catalog::CatalogListRef;
-<span class="kw">use </span>common_base::Plugins;
 <span class="kw">use </span>common_error::prelude::BoxedError;
 <span class="kw">use </span>common_function::scalars::aggregate::AggregateFunctionMetaRef;
 <span class="kw">use </span>common_function::scalars::udf::create_udf;
@@ -459,132 +471,145 @@
 <span class="kw">use </span>common_telemetry::timer;
 <span class="kw">use </span>datafusion::physical_plan::coalesce_partitions::CoalescePartitionsExec;
 <span class="kw">use </span>datafusion::physical_plan::ExecutionPlan;
-<span class="kw">use </span>datafusion_sql::planner::{ParserOptions, SqlToRel};
+<span class="kw">use </span>datafusion_common::ResolvedTableReference;
+<span class="kw">use </span>datafusion_expr::{DmlStatement, LogicalPlan <span class="kw">as </span>DfLogicalPlan, WriteOp};
 <span class="kw">use </span>datatypes::schema::Schema;
-<span class="kw">use </span>promql::planner::PromPlanner;
-<span class="kw">use </span>promql_parser::parser::EvalStmt;
+<span class="kw">use </span>futures_util::StreamExt;
 <span class="kw">use </span>session::context::QueryContextRef;
 <span class="kw">use </span>snafu::{OptionExt, ResultExt};
-<span class="kw">use </span>sql::statements::statement::Statement;
+<span class="kw">use </span>table::requests::InsertRequest;
+<span class="kw">use </span>table::TableRef;
 
 <span class="kw">pub use </span><span class="kw">crate</span>::datafusion::catalog_adapter::DfCatalogListAdapter;
 <span class="kw">pub use </span><span class="kw">crate</span>::datafusion::planner::DfContextProviderAdapter;
 <span class="kw">use </span><span class="kw">crate</span>::error::{
-    DataFusionSnafu, PlanSqlSnafu, QueryExecutionSnafu, QueryPlanSnafu, <span class="prelude-ty">Result</span>, SqlSnafu,
+    CatalogNotFoundSnafu, CatalogSnafu, CreateRecordBatchSnafu, DataFusionSnafu,
+    QueryExecutionSnafu, <span class="prelude-ty">Result</span>, SchemaNotFoundSnafu, TableNotFoundSnafu, UnsupportedExprSnafu,
 };
 <span class="kw">use </span><span class="kw">crate</span>::executor::QueryExecutor;
 <span class="kw">use </span><span class="kw">crate</span>::logical_optimizer::LogicalOptimizer;
-<span class="kw">use </span><span class="kw">crate</span>::parser::QueryStatement;
 <span class="kw">use </span><span class="kw">crate</span>::physical_optimizer::PhysicalOptimizer;
 <span class="kw">use </span><span class="kw">crate</span>::physical_planner::PhysicalPlanner;
 <span class="kw">use </span><span class="kw">crate</span>::plan::LogicalPlan;
+<span class="kw">use </span><span class="kw">crate</span>::planner::{DfLogicalPlanner, LogicalPlanner};
 <span class="kw">use </span><span class="kw">crate</span>::query_engine::{QueryEngineContext, QueryEngineState};
 <span class="kw">use crate</span>::{metric, QueryEngine};
 
 <span class="kw">pub struct </span>DatafusionQueryEngine {
-    state: QueryEngineState,
+    state: Arc&lt;QueryEngineState&gt;,
 }
 
 <span class="kw">impl </span>DatafusionQueryEngine {
-    <span class="kw">pub fn </span>new(catalog_list: CatalogListRef, plugins: Arc&lt;Plugins&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            state: QueryEngineState::new(catalog_list.clone(), plugins),
-        }
+    <span class="kw">pub fn </span>new(state: Arc&lt;QueryEngineState&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ state }
     }
 
-    <span class="kw">async fn </span>plan_sql_stmt(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stmt: Statement,
-        query_ctx: QueryContextRef,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;LogicalPlan&gt; {
-        <span class="kw">let </span>session_state = <span class="self">self</span>.state.session_state();
-
-        <span class="kw">let </span>df_stmt = (<span class="kw-2">&amp;</span>stmt).try_into().context(SqlSnafu)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>config_options = session_state.config().config_options();
-        <span class="kw">let </span>parser_options = ParserOptions {
-            enable_ident_normalization: config_options.sql_parser.enable_ident_normalization,
-            parse_float_as_decimal: config_options.sql_parser.parse_float_as_decimal,
-        };
-
-        <span class="kw">let </span>context_provider = DfContextProviderAdapter::try_new(
-            <span class="self">self</span>.state.clone(),
-            session_state,
-            <span class="kw-2">&amp;</span>df_stmt,
-            query_ctx,
-        )
-        .<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="kw">let </span>sql_to_rel = SqlToRel::new_with_options(<span class="kw-2">&amp;</span>context_provider, parser_options);
-
-        <span class="kw">let </span>result = sql_to_rel.statement_to_plan(df_stmt).with_context(|<span class="kw">_</span>| {
-            <span class="kw">let </span>sql = <span class="kw">if let </span>Statement::Query(query) = stmt {
-                query.inner.to_string()
-            } <span class="kw">else </span>{
-                <span class="macro">format!</span>(<span class="string">&quot;{stmt:?}&quot;</span>)
-            };
-            PlanSqlSnafu { sql }
-        })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(LogicalPlan::DfPlan(result))
-    }
-
-    <span class="comment">// TODO(ruihang): test this method once parser is ready.
-    </span><span class="kw">async fn </span>plan_promql_stmt(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stmt: EvalStmt,
-        query_ctx: QueryContextRef,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;LogicalPlan&gt; {
-        <span class="kw">let </span>table_provider = DfTableSourceProvider::new(
-            <span class="self">self</span>.state.catalog_list().clone(),
-            <span class="self">self</span>.state.disallow_cross_schema_query(),
-            query_ctx.as_ref(),
-        );
-        PromPlanner::stmt_to_plan(table_provider, stmt)
-            .<span class="kw">await
-            </span>.map(LogicalPlan::DfPlan)
-            .map_err(BoxedError::new)
-            .context(QueryPlanSnafu)
-    }
-}
-
-<span class="comment">// TODO(LFC): Refactor consideration: extract a &quot;Planner&quot; that stores query context and execute queries inside.
-</span><span class="attr">#[async_trait]
-</span><span class="kw">impl </span>QueryEngine <span class="kw">for </span>DatafusionQueryEngine {
-    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="string">&quot;datafusion&quot;
-    </span>}
-
-    <span class="kw">async fn </span>statement_to_plan(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stmt: QueryStatement,
-        query_ctx: QueryContextRef,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;LogicalPlan&gt; {
-        <span class="kw">match </span>stmt {
-            QueryStatement::Sql(stmt) =&gt; <span class="self">self</span>.plan_sql_stmt(stmt, query_ctx).<span class="kw">await</span>,
-            QueryStatement::Promql(stmt) =&gt; <span class="self">self</span>.plan_promql_stmt(stmt, query_ctx).<span class="kw">await</span>,
-        }
-    }
-
-    <span class="kw">async fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: QueryStatement, query_ctx: QueryContextRef) -&gt; <span class="prelude-ty">Result</span>&lt;Schema&gt; {
-        <span class="comment">// TODO(sunng87): consider cache optmised logical plan between describe
-        // and execute
-        </span><span class="kw">let </span>plan = <span class="self">self</span>.statement_to_plan(stmt, query_ctx).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="kw">let </span>optimised_plan = <span class="self">self</span>.optimize(<span class="kw-2">&amp;</span>plan)<span class="question-mark">?</span>;
-        optimised_plan.schema()
-    }
-
-    <span class="kw">async fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: <span class="kw-2">&amp;</span>LogicalPlan) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
-        <span class="kw">let </span>logical_plan = <span class="self">self</span>.optimize(plan)<span class="question-mark">?</span>;
-
+    <span class="kw">async fn </span>exec_query_plan(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: LogicalPlan) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = QueryEngineContext::new(<span class="self">self</span>.state.session_state());
-        <span class="kw">let </span>physical_plan = <span class="self">self</span>.create_physical_plan(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>logical_plan).<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="comment">// `create_physical_plan` will optimize logical plan internally
+        </span><span class="kw">let </span>physical_plan = <span class="self">self</span>.create_physical_plan(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span>plan).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span>physical_plan = <span class="self">self</span>.optimize_physical_plan(<span class="kw-2">&amp;mut </span>ctx, physical_plan)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(Output::Stream(<span class="self">self</span>.execute_stream(<span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;</span>physical_plan)<span class="question-mark">?</span>))
     }
 
-    <span class="kw">async fn </span>execute_physical(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: <span class="kw-2">&amp;</span>Arc&lt;<span class="kw">dyn </span>PhysicalPlan&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
-        <span class="kw">let </span>ctx = QueryEngineContext::new(<span class="self">self</span>.state.session_state());
-        <span class="prelude-val">Ok</span>(Output::Stream(<span class="self">self</span>.execute_stream(<span class="kw-2">&amp;</span>ctx, plan)<span class="question-mark">?</span>))
+    <span class="kw">async fn </span>exec_insert_plan(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        dml: <span class="kw-2">&amp;</span>DmlStatement,
+        query_ctx: QueryContextRef,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
+        <span class="kw">let </span>default_catalog = query_ctx.current_catalog();
+        <span class="kw">let </span>default_schema = query_ctx.current_schema();
+        <span class="kw">let </span>table_name = dml
+            .table_name
+            .as_table_reference()
+            .resolve(<span class="kw-2">&amp;</span>default_catalog, <span class="kw-2">&amp;</span>default_schema);
+        <span class="kw">let </span>table = <span class="self">self</span>.find_table(<span class="kw-2">&amp;</span>table_name).<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="kw">let </span>output = <span class="self">self
+            </span>.exec_query_plan(LogicalPlan::DfPlan((<span class="kw-2">*</span>dml.input).clone()))
+            .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = <span class="kw">match </span>output {
+            Output::RecordBatches(batches) =&gt; batches.as_stream(),
+            Output::Stream(stream) =&gt; stream,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>affected_rows = <span class="number">0</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(batch) = stream.next().<span class="kw">await </span>{
+            <span class="kw">let </span>batch = batch.context(CreateRecordBatchSnafu)<span class="question-mark">?</span>;
+            <span class="kw">let </span>request = InsertRequest::try_from_recordbatch(<span class="kw-2">&amp;</span>table_name, table.schema(), batch)
+                .map_err(BoxedError::new)
+                .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
+
+            <span class="kw">let </span>rows = table
+                .insert(request)
+                .<span class="kw">await
+                </span>.map_err(BoxedError::new)
+                .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
+            affected_rows += rows;
+        }
+        <span class="prelude-val">Ok</span>(Output::AffectedRows(affected_rows))
+    }
+
+    <span class="kw">async fn </span>find_table(<span class="kw-2">&amp;</span><span class="self">self</span>, table_name: <span class="kw-2">&amp;</span>ResolvedTableReference&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;TableRef&gt; {
+        <span class="kw">let </span>catalog_name = table_name.catalog.as_ref();
+        <span class="kw">let </span>schema_name = table_name.schema.as_ref();
+        <span class="kw">let </span>table_name = table_name.table.as_ref();
+
+        <span class="kw">let </span>catalog = <span class="self">self
+            </span>.state
+            .catalog_list()
+            .catalog(catalog_name)
+            .context(CatalogSnafu)<span class="question-mark">?
+            </span>.context(CatalogNotFoundSnafu {
+                catalog: catalog_name,
+            })<span class="question-mark">?</span>;
+        <span class="kw">let </span>schema =
+            catalog
+                .schema(schema_name)
+                .context(CatalogSnafu)<span class="question-mark">?
+                </span>.context(SchemaNotFoundSnafu {
+                    schema: schema_name,
+                })<span class="question-mark">?</span>;
+        <span class="kw">let </span>table = schema
+            .table(table_name)
+            .<span class="kw">await
+            </span>.context(CatalogSnafu)<span class="question-mark">?
+            </span>.context(TableNotFoundSnafu { table: table_name })<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(table)
+    }
+}
+
+<span class="attr">#[async_trait]
+</span><span class="kw">impl </span>QueryEngine <span class="kw">for </span>DatafusionQueryEngine {
+    <span class="kw">fn </span>planner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;<span class="kw">dyn </span>LogicalPlanner&gt; {
+        Arc::new(DfLogicalPlanner::new(<span class="self">self</span>.state.clone()))
+    }
+
+    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="string">&quot;datafusion&quot;
+    </span>}
+
+    <span class="kw">async fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: LogicalPlan) -&gt; <span class="prelude-ty">Result</span>&lt;Schema&gt; {
+        <span class="comment">// TODO(sunng87): consider cache optmised logical plan between describe
+        // and execute
+        </span><span class="kw">let </span>optimised_plan = <span class="self">self</span>.optimize(<span class="kw-2">&amp;</span>plan)<span class="question-mark">?</span>;
+        optimised_plan.schema()
+    }
+
+    <span class="kw">async fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: LogicalPlan, query_ctx: QueryContextRef) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
+        <span class="kw">match </span>plan {
+            LogicalPlan::DfPlan(DfLogicalPlan::Dml(dml)) =&gt; <span class="kw">match </span>dml.op {
+                WriteOp::Insert =&gt; <span class="self">self</span>.exec_insert_plan(<span class="kw-2">&amp;</span>dml, query_ctx).<span class="kw">await</span>,
+                <span class="kw">_ </span>=&gt; UnsupportedExprSnafu {
+                    name: <span class="macro">format!</span>(<span class="string">&quot;DML op {}&quot;</span>, dml.op),
+                }
+                .fail(),
+            },
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.exec_query_plan(plan).<span class="kw">await</span>,
+        }
     }
 
     <span class="kw">fn </span>register_udf(<span class="kw-2">&amp;</span><span class="self">self</span>, udf: ScalarUdf) {
@@ -771,7 +796,8 @@
 
         <span class="kw">let </span>stmt = QueryLanguageParser::parse_sql(sql).unwrap();
         <span class="kw">let </span>plan = engine
-            .statement_to_plan(stmt, Arc::new(QueryContext::new()))
+            .planner()
+            .plan(stmt, QueryContext::arc())
             .<span class="kw">await
             </span>.unwrap();
 
@@ -792,11 +818,12 @@
 
         <span class="kw">let </span>stmt = QueryLanguageParser::parse_sql(sql).unwrap();
         <span class="kw">let </span>plan = engine
-            .statement_to_plan(stmt, Arc::new(QueryContext::new()))
+            .planner()
+            .plan(stmt, QueryContext::arc())
             .<span class="kw">await
             </span>.unwrap();
 
-        <span class="kw">let </span>output = engine.execute(<span class="kw-2">&amp;</span>plan).<span class="kw">await</span>.unwrap();
+        <span class="kw">let </span>output = engine.execute(plan, QueryContext::arc()).<span class="kw">await</span>.unwrap();
 
         <span class="kw">match </span>output {
             Output::Stream(recordbatch) =&gt; {
@@ -829,10 +856,13 @@
 
         <span class="kw">let </span>stmt = QueryLanguageParser::parse_sql(sql).unwrap();
 
-        <span class="kw">let </span>schema = engine
-            .describe(stmt, Arc::new(QueryContext::new()))
+        <span class="kw">let </span>plan = engine
+            .planner()
+            .plan(stmt, QueryContext::arc())
             .<span class="kw">await
             </span>.unwrap();
+
+        <span class="kw">let </span>schema = engine.describe(plan).<span class="kw">await</span>.unwrap();
 
         <span class="macro">assert_eq!</span>(
             schema.column_schemas()[<span class="number">0</span>],
