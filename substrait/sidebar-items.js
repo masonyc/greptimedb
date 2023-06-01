@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["context","df_expr","df_logical","error","schema","types"],"struct":["DFLogicalSubstraitConvertor"],"trait":["SubstraitPlan"]};
+window.SIDEBAR_ITEMS = {"mod":["df_substrait","error"],"struct":["DFLogicalSubstraitConvertor"],"trait":["SubstraitPlan"]};

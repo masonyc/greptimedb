@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests-integration/src/test_util.rs`."><title>test_util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e5308b57e507db71.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-d59023bfa12059d2.css"><link rel="stylesheet" disabled href="../../static.files/dark-1ca41bb1e10af075.css"><link rel="stylesheet" disabled href="../../static.files/ayu-18b4181a2f3fb862.css"><script src="../../static.files/storage-3891ce972e3a2bf8.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-98a684e84ae5b08b.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tests_integration/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests-integration/src/test_util.rs`."><title>test_util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tests_integration" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tests_integration/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -368,7 +368,196 @@
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+</pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
 // you may not use this file except in compliance with the License.
@@ -384,31 +573,39 @@
 
 </span><span class="kw">use </span>std::env;
 <span class="kw">use </span>std::net::SocketAddr;
-<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>axum::Router;
 <span class="kw">use </span>catalog::CatalogManagerRef;
-<span class="kw">use </span>common_catalog::consts::{DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME, MIN_USER_TABLE_ID};
+<span class="kw">use </span>common_catalog::consts::{
+    DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME, MIN_USER_TABLE_ID, MITO_ENGINE,
+};
+<span class="kw">use </span>common_query::Output;
+<span class="kw">use </span>common_recordbatch::util;
 <span class="kw">use </span>common_runtime::Builder <span class="kw">as </span>RuntimeBuilder;
+<span class="kw">use </span>common_test_util::ports;
 <span class="kw">use </span>common_test_util::temp_dir::{create_temp_dir, TempDir};
 <span class="kw">use </span>datanode::datanode::{
-    DatanodeOptions, FileConfig, ObjectStoreConfig, OssConfig, S3Config, WalConfig,
+    AzblobConfig, DatanodeOptions, FileConfig, ObjectStoreConfig, OssConfig, ProcedureConfig,
+    S3Config, StorageConfig, WalConfig,
 };
 <span class="kw">use </span>datanode::error::{CreateTableSnafu, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span>datanode::instance::{Instance, InstanceRef};
+<span class="kw">use </span>datanode::instance::Instance;
 <span class="kw">use </span>datanode::sql::SqlHandler;
 <span class="kw">use </span>datatypes::data_type::ConcreteDataType;
 <span class="kw">use </span>datatypes::schema::{ColumnSchema, RawSchema};
 <span class="kw">use </span>frontend::instance::Instance <span class="kw">as </span>FeInstance;
-<span class="kw">use </span>object_store::services::{Oss, S3};
+<span class="kw">use </span>frontend::service_config::{MysqlOptions, PostgresOptions};
+<span class="kw">use </span>object_store::services::{Azblob, Oss, S3};
 <span class="kw">use </span>object_store::test_util::TempFolder;
-<span class="kw">use </span>object_store::{ObjectStore, ObjectStoreBuilder};
-<span class="kw">use </span>once_cell::sync::OnceCell;
-<span class="kw">use </span>rand::Rng;
+<span class="kw">use </span>object_store::ObjectStore;
+<span class="kw">use </span>secrecy::ExposeSecret;
 <span class="kw">use </span>servers::grpc::GrpcServer;
-<span class="kw">use </span>servers::http::{HttpOptions, HttpServer};
+<span class="kw">use </span>servers::http::{HttpOptions, HttpServerBuilder};
+<span class="kw">use </span>servers::metrics_handler::MetricsHandler;
+<span class="kw">use </span>servers::mysql::server::{MysqlServer, MysqlSpawnConfig, MysqlSpawnRef};
+<span class="kw">use </span>servers::postgres::PostgresServer;
 <span class="kw">use </span>servers::prom::PromServer;
 <span class="kw">use </span>servers::query_handler::grpc::ServerGrpcQueryHandlerAdaptor;
 <span class="kw">use </span>servers::query_handler::sql::ServerSqlQueryHandlerAdaptor;
@@ -418,18 +615,13 @@
 <span class="kw">use </span>table::engine::{EngineContext, TableEngineRef};
 <span class="kw">use </span>table::requests::{CreateTableRequest, TableOptions};
 
-<span class="kw">static </span>PORTS: OnceCell&lt;AtomicUsize&gt; = OnceCell::new();
-
-<span class="kw">fn </span>get_port() -&gt; usize {
-    PORTS
-        .get_or_init(|| AtomicUsize::new(rand::thread_rng().gen_range(<span class="number">3500</span>..<span class="number">3900</span>)))
-        .fetch_add(<span class="number">1</span>, Ordering::Relaxed)
-}
-
-<span class="kw">pub enum </span>StorageType {
+<span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>StorageType {
     S3,
+    S3WithCache,
     File,
     Oss,
+    Azblob,
 }
 
 <span class="kw">impl </span>StorageType {
@@ -438,7 +630,7 @@
 
         <span class="kw">match </span><span class="self">self </span>{
             StorageType::File =&gt; <span class="bool-val">true</span>, <span class="comment">// always test file
-            </span>StorageType::S3 =&gt; {
+            </span>StorageType::S3 | StorageType::S3WithCache =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(b) = env::var(<span class="string">&quot;GT_S3_BUCKET&quot;</span>) {
                     !b.is_empty()
                 } <span class="kw">else </span>{
@@ -452,105 +644,149 @@
                     <span class="bool-val">false
                 </span>}
             }
+            StorageType::Azblob =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(b) = env::var(<span class="string">&quot;GT_AZBLOB_CONTAINER&quot;</span>) {
+                    !b.is_empty()
+                } <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
+            }
         }
     }
 }
 
-<span class="kw">fn </span>get_test_store_config(
+<span class="kw">fn </span>s3_test_config() -&gt; S3Config {
+    S3Config {
+        root: uuid::Uuid::new_v4().to_string(),
+        access_key_id: env::var(<span class="string">&quot;GT_S3_ACCESS_KEY_ID&quot;</span>).unwrap().into(),
+        secret_access_key: env::var(<span class="string">&quot;GT_S3_ACCESS_KEY&quot;</span>).unwrap().into(),
+        bucket: env::var(<span class="string">&quot;GT_S3_BUCKET&quot;</span>).unwrap(),
+        region: <span class="prelude-val">Some</span>(env::var(<span class="string">&quot;GT_S3_REGION&quot;</span>).unwrap()),
+        ..Default::default()
+    }
+}
+
+<span class="kw">pub fn </span>get_test_store_config(
     store_type: <span class="kw-2">&amp;</span>StorageType,
     name: <span class="kw-2">&amp;</span>str,
-) -&gt; (ObjectStoreConfig, <span class="prelude-ty">Option</span>&lt;TempDirGuard&gt;) {
+) -&gt; (ObjectStoreConfig, TempDirGuard) {
     <span class="kw">let _ </span>= dotenv::dotenv();
 
     <span class="kw">match </span>store_type {
+        StorageType::Azblob =&gt; {
+            <span class="kw">let </span>azblob_config = AzblobConfig {
+                root: uuid::Uuid::new_v4().to_string(),
+                container: env::var(<span class="string">&quot;GT_AZBLOB_CONTAINER&quot;</span>).unwrap(),
+                account_name: env::var(<span class="string">&quot;GT_AZBLOB_ACCOUNT_NAME&quot;</span>).unwrap().into(),
+                account_key: env::var(<span class="string">&quot;GT_AZBLOB_ACCOUNT_KEY&quot;</span>).unwrap().into(),
+                endpoint: env::var(<span class="string">&quot;GT_AZBLOB_ENDPOINT&quot;</span>).unwrap(),
+                ..Default::default()
+            };
+
+            <span class="kw">let </span><span class="kw-2">mut </span>builder = Azblob::default();
+            builder
+                .root(<span class="kw-2">&amp;</span>azblob_config.root)
+                .endpoint(<span class="kw-2">&amp;</span>azblob_config.endpoint)
+                .account_name(azblob_config.account_name.expose_secret())
+                .account_key(azblob_config.account_key.expose_secret())
+                .container(<span class="kw-2">&amp;</span>azblob_config.container);
+
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(sas_token) = env::var(<span class="string">&quot;GT_AZBLOB_SAS_TOKEN&quot;</span>) {
+                builder.sas_token(<span class="kw-2">&amp;</span>sas_token);
+            }
+
+            <span class="kw">let </span>config = ObjectStoreConfig::Azblob(azblob_config);
+
+            <span class="kw">let </span>store = ObjectStore::new(builder).unwrap().finish();
+
+            (config, TempDirGuard::Azblob(TempFolder::new(<span class="kw-2">&amp;</span>store, <span class="string">&quot;/&quot;</span>)))
+        }
         StorageType::Oss =&gt; {
             <span class="kw">let </span>oss_config = OssConfig {
                 root: uuid::Uuid::new_v4().to_string(),
-                access_key_id: env::var(<span class="string">&quot;GT_OSS_ACCESS_KEY_ID&quot;</span>).unwrap(),
-                access_key_secret: env::var(<span class="string">&quot;GT_OSS_ACCESS_KEY&quot;</span>).unwrap(),
+                access_key_id: env::var(<span class="string">&quot;GT_OSS_ACCESS_KEY_ID&quot;</span>).unwrap().into(),
+                access_key_secret: env::var(<span class="string">&quot;GT_OSS_ACCESS_KEY&quot;</span>).unwrap().into(),
                 bucket: env::var(<span class="string">&quot;GT_OSS_BUCKET&quot;</span>).unwrap(),
                 endpoint: env::var(<span class="string">&quot;GT_OSS_ENDPOINT&quot;</span>).unwrap(),
-                cache_path: <span class="prelude-val">None</span>,
-                cache_capacity: <span class="prelude-val">None</span>,
+                ..Default::default()
             };
 
-            <span class="kw">let </span>accessor = Oss::default()
+            <span class="kw">let </span><span class="kw-2">mut </span>builder = Oss::default();
+            builder
                 .root(<span class="kw-2">&amp;</span>oss_config.root)
                 .endpoint(<span class="kw-2">&amp;</span>oss_config.endpoint)
-                .access_key_id(<span class="kw-2">&amp;</span>oss_config.access_key_id)
-                .access_key_secret(<span class="kw-2">&amp;</span>oss_config.access_key_secret)
-                .bucket(<span class="kw-2">&amp;</span>oss_config.bucket)
-                .build()
-                .unwrap();
+                .access_key_id(oss_config.access_key_id.expose_secret())
+                .access_key_secret(oss_config.access_key_secret.expose_secret())
+                .bucket(<span class="kw-2">&amp;</span>oss_config.bucket);
 
             <span class="kw">let </span>config = ObjectStoreConfig::Oss(oss_config);
 
-            <span class="kw">let </span>store = ObjectStore::new(accessor).finish();
+            <span class="kw">let </span>store = ObjectStore::new(builder).unwrap().finish();
 
-            (
-                config,
-                <span class="prelude-val">Some</span>(TempDirGuard::Oss(TempFolder::new(<span class="kw-2">&amp;</span>store, <span class="string">&quot;/&quot;</span>))),
-            )
+            (config, TempDirGuard::Oss(TempFolder::new(<span class="kw-2">&amp;</span>store, <span class="string">&quot;/&quot;</span>)))
         }
-        StorageType::S3 =&gt; {
-            <span class="kw">let </span>s3_config = S3Config {
-                root: uuid::Uuid::new_v4().to_string(),
-                access_key_id: env::var(<span class="string">&quot;GT_S3_ACCESS_KEY_ID&quot;</span>).unwrap(),
-                secret_access_key: env::var(<span class="string">&quot;GT_S3_ACCESS_KEY&quot;</span>).unwrap(),
-                bucket: env::var(<span class="string">&quot;GT_S3_BUCKET&quot;</span>).unwrap(),
-                endpoint: <span class="prelude-val">None</span>,
-                region: <span class="prelude-val">None</span>,
-                cache_path: <span class="prelude-val">None</span>,
-                cache_capacity: <span class="prelude-val">None</span>,
-            };
+        StorageType::S3 | StorageType::S3WithCache =&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>s3_config = s3_test_config();
 
-            <span class="kw">let </span>accessor = S3::default()
+            <span class="kw">if </span><span class="kw-2">*</span>store_type == StorageType::S3WithCache {
+                s3_config.cache_path = <span class="prelude-val">Some</span>(<span class="string">&quot;/tmp/greptimedb_cache&quot;</span>.to_string());
+            }
+
+            <span class="kw">let </span><span class="kw-2">mut </span>builder = S3::default();
+            builder
                 .root(<span class="kw-2">&amp;</span>s3_config.root)
-                .access_key_id(<span class="kw-2">&amp;</span>s3_config.access_key_id)
-                .secret_access_key(<span class="kw-2">&amp;</span>s3_config.secret_access_key)
-                .bucket(<span class="kw-2">&amp;</span>s3_config.bucket)
-                .build()
-                .unwrap();
+                .access_key_id(s3_config.access_key_id.expose_secret())
+                .secret_access_key(s3_config.secret_access_key.expose_secret())
+                .bucket(<span class="kw-2">&amp;</span>s3_config.bucket);
+
+            <span class="kw">if </span>s3_config.endpoint.is_some() {
+                builder.endpoint(s3_config.endpoint.as_ref().unwrap());
+            }
+            <span class="kw">if </span>s3_config.region.is_some() {
+                builder.region(s3_config.region.as_ref().unwrap());
+            }
 
             <span class="kw">let </span>config = ObjectStoreConfig::S3(s3_config);
 
-            <span class="kw">let </span>store = ObjectStore::new(accessor).finish();
+            <span class="kw">let </span>store = ObjectStore::new(builder).unwrap().finish();
 
-            (config, <span class="prelude-val">Some</span>(TempDirGuard::S3(TempFolder::new(<span class="kw-2">&amp;</span>store, <span class="string">&quot;/&quot;</span>))))
+            (config, TempDirGuard::S3(TempFolder::new(<span class="kw-2">&amp;</span>store, <span class="string">&quot;/&quot;</span>)))
         }
         StorageType::File =&gt; {
             <span class="kw">let </span>data_tmp_dir = create_temp_dir(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;gt_data_{name}&quot;</span>));
 
             (
                 ObjectStoreConfig::File(FileConfig {
-                    data_dir: data_tmp_dir.path().to_str().unwrap().to_string(),
+                    data_home: data_tmp_dir.path().to_str().unwrap().to_string(),
                 }),
-                <span class="prelude-val">Some</span>(TempDirGuard::File(data_tmp_dir)),
+                TempDirGuard::File(data_tmp_dir),
             )
         }
     }
 }
 
-<span class="kw">enum </span>TempDirGuard {
+<span class="kw">pub enum </span>TempDirGuard {
     File(TempDir),
     S3(TempFolder),
     Oss(TempFolder),
+    Azblob(TempFolder),
 }
 
-<span class="doccomment">/// Create a tmp dir(will be deleted once it goes out of scope.) and a default `DatanodeOptions`,
-/// Only for test.
-</span><span class="kw">pub struct </span>TestGuard {
-    _wal_tmp_dir: TempDir,
-    data_tmp_dir: <span class="prelude-ty">Option</span>&lt;TempDirGuard&gt;,
+<span class="kw">pub struct </span>TestGuard {
+    <span class="kw">pub </span>wal_guard: WalGuard,
+    <span class="kw">pub </span>storage_guard: StorageGuard,
 }
+
+<span class="kw">pub struct </span>WalGuard(<span class="kw">pub </span>TempDir);
+
+<span class="kw">pub struct </span>StorageGuard(<span class="kw">pub </span>TempDirGuard);
 
 <span class="kw">impl </span>TestGuard {
     <span class="kw">pub async fn </span>remove_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(TempDirGuard::S3(<span class="kw-2">mut </span>guard)) = <span class="self">self</span>.data_tmp_dir.take() {
-            guard.remove_all().<span class="kw">await</span>.unwrap();
-        }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(TempDirGuard::Oss(<span class="kw-2">mut </span>guard)) = <span class="self">self</span>.data_tmp_dir.take() {
-            guard.remove_all().<span class="kw">await</span>.unwrap();
+        <span class="kw">if let </span>TempDirGuard::S3(guard) | TempDirGuard::Oss(guard) | TempDirGuard::Azblob(guard) =
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.storage_guard.<span class="number">0
+        </span>{
+            guard.remove_all().<span class="kw">await</span>.unwrap()
         }
     }
 }
@@ -560,25 +796,34 @@
     name: <span class="kw-2">&amp;</span>str,
 ) -&gt; (DatanodeOptions, TestGuard) {
     <span class="kw">let </span>wal_tmp_dir = create_temp_dir(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;gt_wal_{name}&quot;</span>));
+    <span class="kw">let </span>wal_dir = wal_tmp_dir.path().to_str().unwrap().to_string();
 
-    <span class="kw">let </span>(storage, data_tmp_dir) = get_test_store_config(<span class="kw-2">&amp;</span>store_type, name);
+    <span class="kw">let </span>(store, data_tmp_dir) = get_test_store_config(<span class="kw-2">&amp;</span>store_type, name);
+    <span class="kw">let </span>opts = create_datanode_opts(store, wal_dir);
 
-    <span class="kw">let </span>opts = DatanodeOptions {
-        wal: WalConfig {
-            dir: wal_tmp_dir.path().to_str().unwrap().to_string(),
-            ..Default::default()
-        },
-        storage,
-        mode: Mode::Standalone,
-        ..Default::default()
-    };
     (
         opts,
         TestGuard {
-            _wal_tmp_dir: wal_tmp_dir,
-            data_tmp_dir,
+            wal_guard: WalGuard(wal_tmp_dir),
+            storage_guard: StorageGuard(data_tmp_dir),
         },
     )
+}
+
+<span class="kw">pub fn </span>create_datanode_opts(store: ObjectStoreConfig, wal_dir: String) -&gt; DatanodeOptions {
+    DatanodeOptions {
+        wal: WalConfig {
+            dir: <span class="prelude-val">Some</span>(wal_dir),
+            ..Default::default()
+        },
+        storage: StorageConfig {
+            store,
+            ..Default::default()
+        },
+        mode: Mode::Standalone,
+        procedure: ProcedureConfig::default(),
+        ..Default::default()
+    }
 }
 
 <span class="kw">pub async fn </span>create_test_table(
@@ -594,7 +839,10 @@
     ];
 
     <span class="kw">let </span>table_name = <span class="string">&quot;demo&quot;</span>;
-    <span class="kw">let </span>table_engine: TableEngineRef = sql_handler.table_engine();
+    <span class="kw">let </span>table_engine: TableEngineRef = sql_handler
+        .table_engine_manager()
+        .engine(MITO_ENGINE)
+        .unwrap();
     <span class="kw">let </span>table = table_engine
         .create_table(
             <span class="kw-2">&amp;</span>EngineContext::default(),
@@ -609,6 +857,7 @@
                 primary_key_indices: <span class="macro">vec!</span>[<span class="number">0</span>], <span class="comment">// &quot;host&quot; is in primary keys
                 </span>table_options: TableOptions::default(),
                 region_numbers: <span class="macro">vec!</span>[<span class="number">0</span>],
+                engine: MITO_ENGINE.to_string(),
             },
         )
         .<span class="kw">await
@@ -616,27 +865,23 @@
 
     <span class="kw">let </span>schema_provider = catalog_manager
         .catalog(DEFAULT_CATALOG_NAME)
-        .unwrap()
+        .<span class="kw">await
+        </span>.unwrap()
         .unwrap()
         .schema(DEFAULT_SCHEMA_NAME)
-        .unwrap()
+        .<span class="kw">await
+        </span>.unwrap()
         .unwrap();
     schema_provider
         .register_table(table_name.to_string(), table)
-        .unwrap();
+        .<span class="kw">await
+        </span>.unwrap();
     <span class="prelude-val">Ok</span>(())
-}
-
-<span class="kw">fn </span>build_frontend_instance(datanode_instance: InstanceRef) -&gt; FeInstance {
-    <span class="kw">let </span><span class="kw-2">mut </span>frontend_instance = FeInstance::new_standalone(datanode_instance.clone());
-    frontend_instance.set_script_handler(datanode_instance);
-    frontend_instance
 }
 
 <span class="kw">pub async fn </span>setup_test_http_app(store_type: StorageType, name: <span class="kw-2">&amp;</span>str) -&gt; (Router, TestGuard) {
     <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(store_type, name);
     <span class="kw">let </span>instance = Arc::new(Instance::with_mock_meta_client(<span class="kw-2">&amp;</span>opts).<span class="kw">await</span>.unwrap());
-    instance.start().<span class="kw">await</span>.unwrap();
     create_test_table(
         instance.catalog_manager(),
         instance.sql_handler(),
@@ -644,12 +889,23 @@
     )
     .<span class="kw">await
     </span>.unwrap();
-    <span class="kw">let </span>http_server = HttpServer::new(
-        ServerSqlQueryHandlerAdaptor::arc(Arc::new(build_frontend_instance(instance.clone()))),
-        ServerGrpcQueryHandlerAdaptor::arc(instance.clone()),
-        HttpOptions::default(),
-    );
-    (http_server.make_app(), guard)
+    <span class="kw">let </span>frontend_instance = FeInstance::try_new_standalone(instance.clone())
+        .<span class="kw">await
+        </span>.unwrap();
+    instance.start().<span class="kw">await</span>.unwrap();
+
+    <span class="kw">let </span>http_opts = HttpOptions {
+        addr: <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{}&quot;</span>, ports::get_port()),
+        ..Default::default()
+    };
+    <span class="kw">let </span>http_server = HttpServerBuilder::new(http_opts)
+        .with_sql_handler(ServerSqlQueryHandlerAdaptor::arc(Arc::new(
+            frontend_instance,
+        )))
+        .with_grpc_handler(ServerGrpcQueryHandlerAdaptor::arc(instance.clone()))
+        .with_metrics_handler(MetricsHandler)
+        .build();
+    (http_server.build(http_server.make_app()), guard)
 }
 
 <span class="kw">pub async fn </span>setup_test_http_app_with_frontend(
@@ -658,7 +914,9 @@
 ) -&gt; (Router, TestGuard) {
     <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(store_type, name);
     <span class="kw">let </span>instance = Arc::new(Instance::with_mock_meta_client(<span class="kw-2">&amp;</span>opts).<span class="kw">await</span>.unwrap());
-    <span class="kw">let </span>frontend = build_frontend_instance(instance.clone());
+    <span class="kw">let </span>frontend = FeInstance::try_new_standalone(instance.clone())
+        .<span class="kw">await
+        </span>.unwrap();
     instance.start().<span class="kw">await</span>.unwrap();
     create_test_table(
         frontend.catalog_manager(),
@@ -667,14 +925,19 @@
     )
     .<span class="kw">await
     </span>.unwrap();
+
+    <span class="kw">let </span>http_opts = HttpOptions {
+        addr: <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{}&quot;</span>, ports::get_port()),
+        ..Default::default()
+    };
+
     <span class="kw">let </span>frontend_ref = Arc::new(frontend);
-    <span class="kw">let </span><span class="kw-2">mut </span>http_server = HttpServer::new(
-        ServerSqlQueryHandlerAdaptor::arc(frontend_ref.clone()),
-        ServerGrpcQueryHandlerAdaptor::arc(frontend_ref),
-        HttpOptions::default(),
-    );
-    http_server.set_script_handler(instance.clone());
-    <span class="kw">let </span>app = http_server.make_app();
+    <span class="kw">let </span>http_server = HttpServerBuilder::new(http_opts)
+        .with_sql_handler(ServerSqlQueryHandlerAdaptor::arc(frontend_ref.clone()))
+        .with_grpc_handler(ServerGrpcQueryHandlerAdaptor::arc(frontend_ref.clone()))
+        .with_script_handler(frontend_ref)
+        .build();
+    <span class="kw">let </span>app = http_server.build(http_server.make_app());
     (app, guard)
 }
 
@@ -684,7 +947,9 @@
 ) -&gt; (Router, TestGuard) {
     <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(store_type, name);
     <span class="kw">let </span>instance = Arc::new(Instance::with_mock_meta_client(<span class="kw-2">&amp;</span>opts).<span class="kw">await</span>.unwrap());
-    <span class="kw">let </span>frontend = build_frontend_instance(instance.clone());
+    <span class="kw">let </span>frontend = FeInstance::try_new_standalone(instance.clone())
+        .<span class="kw">await
+        </span>.unwrap();
     instance.start().<span class="kw">await</span>.unwrap();
     create_test_table(
         frontend.catalog_manager(),
@@ -706,7 +971,6 @@
 
     <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(store_type, name);
     <span class="kw">let </span>instance = Arc::new(Instance::with_mock_meta_client(<span class="kw-2">&amp;</span>opts).<span class="kw">await</span>.unwrap());
-    instance.start().<span class="kw">await</span>.unwrap();
 
     <span class="kw">let </span>runtime = Arc::new(
         RuntimeBuilder::default()
@@ -716,12 +980,16 @@
             .unwrap(),
     );
 
-    <span class="kw">let </span>fe_grpc_addr = <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{}&quot;</span>, get_port());
+    <span class="kw">let </span>fe_grpc_addr = <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{}&quot;</span>, ports::get_port());
 
-    <span class="kw">let </span>fe_instance = frontend::instance::Instance::new_standalone(instance.clone());
+    <span class="kw">let </span>fe_instance = FeInstance::try_new_standalone(instance.clone())
+        .<span class="kw">await
+        </span>.unwrap();
+    instance.start().<span class="kw">await</span>.unwrap();
     <span class="kw">let </span>fe_instance_ref = Arc::new(fe_instance);
     <span class="kw">let </span>fe_grpc_server = Arc::new(GrpcServer::new(
-        ServerGrpcQueryHandlerAdaptor::arc(fe_instance_ref),
+        ServerGrpcQueryHandlerAdaptor::arc(fe_instance_ref.clone()),
+        <span class="prelude-val">Some</span>(fe_instance_ref.clone()),
         <span class="prelude-val">None</span>,
         runtime,
     ));
@@ -738,5 +1006,114 @@
 
     (fe_grpc_addr, guard, fe_grpc_server)
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tests_integration" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (34e6673a0 2023-02-25)" data-search-js="search-14421e1532aead08.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+
+<span class="kw">pub async fn </span>check_output_stream(output: Output, expected: <span class="kw-2">&amp;</span>str) {
+    <span class="kw">let </span>recordbatches = <span class="kw">match </span>output {
+        Output::Stream(stream) =&gt; util::collect_batches(stream).<span class="kw">await</span>.unwrap(),
+        Output::RecordBatches(recordbatches) =&gt; recordbatches,
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+    };
+    <span class="kw">let </span>pretty_print = recordbatches.pretty_print().unwrap();
+    <span class="macro">assert_eq!</span>(pretty_print, expected, <span class="string">&quot;actual: \n{}&quot;</span>, pretty_print);
+}
+
+<span class="kw">pub async fn </span>setup_mysql_server(
+    store_type: StorageType,
+    name: <span class="kw-2">&amp;</span>str,
+) -&gt; (String, TestGuard, Arc&lt;Box&lt;<span class="kw">dyn </span>Server&gt;&gt;) {
+    common_telemetry::init_default_ut_logging();
+
+    <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(store_type, name);
+    <span class="kw">let </span>instance = Arc::new(Instance::with_mock_meta_client(<span class="kw-2">&amp;</span>opts).<span class="kw">await</span>.unwrap());
+
+    <span class="kw">let </span>runtime = Arc::new(
+        RuntimeBuilder::default()
+            .worker_threads(<span class="number">2</span>)
+            .thread_name(<span class="string">&quot;mysql-runtime&quot;</span>)
+            .build()
+            .unwrap(),
+    );
+
+    <span class="kw">let </span>fe_mysql_addr = <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{}&quot;</span>, ports::get_port());
+
+    <span class="kw">let </span>fe_instance = FeInstance::try_new_standalone(instance.clone())
+        .<span class="kw">await
+        </span>.unwrap();
+    instance.start().<span class="kw">await</span>.unwrap();
+    <span class="kw">let </span>fe_instance_ref = Arc::new(fe_instance);
+    <span class="kw">let </span>opts = MysqlOptions {
+        addr: fe_mysql_addr.clone(),
+        ..Default::default()
+    };
+    <span class="kw">let </span>fe_mysql_server = Arc::new(MysqlServer::create_server(
+        runtime,
+        Arc::new(MysqlSpawnRef::new(
+            ServerSqlQueryHandlerAdaptor::arc(fe_instance_ref),
+            <span class="prelude-val">None</span>,
+        )),
+        Arc::new(MysqlSpawnConfig::new(
+            <span class="bool-val">false</span>,
+            opts.tls.setup().unwrap().map(Arc::new),
+            opts.reject_no_database.unwrap_or(<span class="bool-val">false</span>),
+        )),
+    ));
+
+    <span class="kw">let </span>fe_mysql_addr_clone = fe_mysql_addr.clone();
+    <span class="kw">let </span>fe_mysql_server_clone = fe_mysql_server.clone();
+    tokio::spawn(<span class="kw">async move </span>{
+        <span class="kw">let </span>addr = fe_mysql_addr_clone.parse::&lt;SocketAddr&gt;().unwrap();
+        fe_mysql_server_clone.start(addr).<span class="kw">await</span>.unwrap()
+    });
+
+    tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+
+    (fe_mysql_addr, guard, fe_mysql_server)
+}
+
+<span class="kw">pub async fn </span>setup_pg_server(
+    store_type: StorageType,
+    name: <span class="kw-2">&amp;</span>str,
+) -&gt; (String, TestGuard, Arc&lt;Box&lt;<span class="kw">dyn </span>Server&gt;&gt;) {
+    common_telemetry::init_default_ut_logging();
+
+    <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(store_type, name);
+    <span class="kw">let </span>instance = Arc::new(Instance::with_mock_meta_client(<span class="kw-2">&amp;</span>opts).<span class="kw">await</span>.unwrap());
+
+    <span class="kw">let </span>runtime = Arc::new(
+        RuntimeBuilder::default()
+            .worker_threads(<span class="number">2</span>)
+            .thread_name(<span class="string">&quot;pg-runtime&quot;</span>)
+            .build()
+            .unwrap(),
+    );
+
+    <span class="kw">let </span>fe_pg_addr = <span class="macro">format!</span>(<span class="string">&quot;127.0.0.1:{}&quot;</span>, ports::get_port());
+
+    <span class="kw">let </span>fe_instance = FeInstance::try_new_standalone(instance.clone())
+        .<span class="kw">await
+        </span>.unwrap();
+    instance.start().<span class="kw">await</span>.unwrap();
+    <span class="kw">let </span>fe_instance_ref = Arc::new(fe_instance);
+    <span class="kw">let </span>opts = PostgresOptions {
+        addr: fe_pg_addr.clone(),
+        ..Default::default()
+    };
+    <span class="kw">let </span>fe_pg_server = Arc::new(Box::new(PostgresServer::new(
+        ServerSqlQueryHandlerAdaptor::arc(fe_instance_ref),
+        opts.tls.clone(),
+        runtime,
+        <span class="prelude-val">None</span>,
+    )) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Server&gt;);
+
+    <span class="kw">let </span>fe_pg_addr_clone = fe_pg_addr.clone();
+    <span class="kw">let </span>fe_pg_server_clone = fe_pg_server.clone();
+    tokio::spawn(<span class="kw">async move </span>{
+        <span class="kw">let </span>addr = fe_pg_addr_clone.parse::&lt;SocketAddr&gt;().unwrap();
+        fe_pg_server_clone.start(addr).<span class="kw">await</span>.unwrap()
+    });
+
+    tokio::time::sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+
+    (fe_pg_addr, guard, fe_pg_server)
+}
+</code></pre></div></section></main></body></html>
