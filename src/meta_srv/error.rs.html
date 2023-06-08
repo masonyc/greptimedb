@@ -471,7 +471,6 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
-<a href="#474" id="474">474</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -662,13 +661,6 @@
         location: Location,
     },
 
-    <span class="attr">#[snafu(display(<span class="string">&quot;Invalid KVs length, expected: {}, actual: {}&quot;</span>, expected, actual))]
-    </span>InvalidKvsLength {
-        expected: usize,
-        actual: usize,
-        location: Location,
-    },
-
     <span class="attr">#[snafu(display(<span class="string">&quot;Failed to create gRPC channel, source: {}&quot;</span>, source))]
     </span>CreateChannel {
         <span class="attr">#[snafu(backtrace)]
@@ -761,6 +753,12 @@
     <span class="attr">#[snafu(display(<span class="string">&quot;Schema already exists, name: {schema_name}&quot;</span>))]
     </span>SchemaAlreadyExists {
         schema_name: String,
+        location: Location,
+    },
+
+    <span class="attr">#[snafu(display(<span class="string">&quot;Table already exists: {table_name}&quot;</span>))]
+    </span>TableAlreadyExists {
+        table_name: String,
         location: Location,
     },
 
@@ -875,6 +873,7 @@
             | Error::SendShutdownSignal { .. }
             | Error::ParseAddr { .. }
             | Error::SchemaAlreadyExists { .. }
+            | Error::TableAlreadyExists { .. }
             | Error::PusherNotFound { .. }
             | Error::PushMessage { .. }
             | Error::MailboxClosed { .. }
@@ -902,7 +901,6 @@
             | Error::NextSequence { .. }
             | Error::SequenceOutOfRange { .. }
             | Error::MoveValue { .. }
-            | Error::InvalidKvsLength { .. }
             | Error::InvalidTxnResult { .. }
             | Error::InvalidUtf8Value { .. }
             | Error::UnexpectedInstructionReply { .. }
