@@ -746,6 +746,30 @@
 <a href="#746" id="746">746</a>
 <a href="#747" id="747">747</a>
 <a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -776,13 +800,17 @@
 <span class="kw">use </span>metrics::{decrement_gauge, increment_gauge};
 <span class="kw">use </span>snafu::ResultExt;
 <span class="kw">use </span>store_api::logstore::LogStore;
-<span class="kw">use </span>store_api::manifest::{<span class="self">self</span>, Manifest, ManifestVersion, MetaActionIterator};
+<span class="kw">use </span>store_api::manifest::{
+    <span class="self">self</span>, Manifest, ManifestLogStorage, ManifestVersion, MetaActionIterator,
+};
 <span class="kw">use </span>store_api::storage::{
-    AlterRequest, CloseContext, FlushContext, FlushReason, OpenOptions, ReadContext, Region,
-    RegionId, SequenceNumber, WriteContext, WriteResponse,
+    AlterRequest, CloseContext, CompactContext, CompactionStrategy, FlushContext, FlushReason,
+    OpenOptions, ReadContext, Region, RegionId, SequenceNumber, WriteContext, WriteResponse,
 };
 
-<span class="kw">use </span><span class="kw">crate</span>::compaction::CompactionSchedulerRef;
+<span class="kw">use </span><span class="kw">crate</span>::compaction::{
+    compaction_strategy_to_picker, CompactionPickerRef, CompactionSchedulerRef,
+};
 <span class="kw">use </span><span class="kw">crate</span>::config::EngineConfig;
 <span class="kw">use </span><span class="kw">crate</span>::error::{<span class="self">self</span>, Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span><span class="kw">crate</span>::file_purger::FilePurgerRef;
@@ -795,7 +823,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::metadata::{RegionMetaImpl, RegionMetadata, RegionMetadataRef};
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="kw">crate</span>::region::writer::schedule_compaction;
 <span class="kw">use </span><span class="kw">crate</span>::region::writer::DropContext;
-<span class="kw">pub use </span><span class="kw">crate</span>::region::writer::{AlterContext, RegionWriter, RegionWriterRef, WriterContext};
+<span class="kw">pub use </span><span class="kw">crate</span>::region::writer::{
+    AlterContext, RegionWriter, RegionWriterRef, WriterCompactRequest, WriterContext,
+};
 <span class="kw">use </span><span class="kw">crate</span>::schema::compat::CompatWrite;
 <span class="kw">use </span><span class="kw">crate</span>::snapshot::SnapshotImpl;
 <span class="kw">use </span><span class="kw">crate</span>::sst::AccessLayerRef;
@@ -875,6 +905,7 @@
     </span>}
 
     <span class="kw">async fn </span>drop_region(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="macro">decrement_gauge!</span>(<span class="kw">crate</span>::metrics::REGION_COUNT, <span class="number">1.0</span>);
         <span class="self">self</span>.inner.drop_region().<span class="kw">await
     </span>}
 
@@ -890,6 +921,10 @@
 
     <span class="kw">async fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>FlushContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.inner.flush(ctx).<span class="kw">await
+    </span>}
+
+    <span class="kw">async fn </span>compact(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>CompactContext) -&gt; std::result::Result&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.inner.compact(ctx).<span class="kw">await
     </span>}
 }
 
@@ -908,29 +943,12 @@
     <span class="kw">pub </span>engine_config: Arc&lt;EngineConfig&gt;,
     <span class="kw">pub </span>file_purger: FilePurgerRef,
     <span class="kw">pub </span>ttl: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
-    <span class="kw">pub </span>compaction_time_window: <span class="prelude-ty">Option</span>&lt;i64&gt;,
     <span class="kw">pub </span>write_buffer_size: usize,
+    <span class="kw">pub </span>compaction_strategy: CompactionStrategy,
 }
 
-<span class="kw">pub type </span>RecoverdMetadata = (SequenceNumber, (ManifestVersion, RawRegionMetadata));
+<span class="kw">pub type </span>RecoveredMetadata = (SequenceNumber, (ManifestVersion, RawRegionMetadata));
 <span class="kw">pub type </span>RecoveredMetadataMap = BTreeMap&lt;SequenceNumber, (ManifestVersion, RawRegionMetadata)&gt;;
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CompactContext {
-    <span class="doccomment">/// Whether to wait the compaction result.
-    </span><span class="kw">pub </span>wait: bool,
-    <span class="doccomment">/// Max file number in level 0.
-    </span><span class="kw">pub </span>max_files_in_l0: usize,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>CompactContext {
-    <span class="kw">fn </span>default() -&gt; CompactContext {
-        CompactContext {
-            wait: <span class="bool-val">true</span>,
-            max_files_in_l0: <span class="number">1</span>,
-        }
-    }
-}
 
 <span class="kw">impl</span>&lt;S: LogStore&gt; RegionImpl&lt;S&gt; {
     <span class="doccomment">/// Create a new region and also persist the region metadata to manifest.
@@ -981,6 +999,7 @@
         <span class="kw">let </span>version_control = VersionControl::with_version(version);
         <span class="kw">let </span>wal = Wal::new(id, store_config.log_store);
 
+        <span class="kw">let </span>compaction_picker = compaction_strategy_to_picker(<span class="kw-2">&amp;</span>store_config.compaction_strategy);
         <span class="kw">let </span>inner = Arc::new(RegionInner {
             shared: Arc::new(SharedData {
                 id,
@@ -992,13 +1011,15 @@
                 store_config.memtable_builder,
                 store_config.engine_config.clone(),
                 store_config.ttl,
-                store_config.compaction_time_window,
                 store_config.write_buffer_size,
+                store_config.compaction_scheduler.clone(),
+                compaction_picker.clone(),
             )),
             wal,
             flush_strategy: store_config.flush_strategy,
             flush_scheduler: store_config.flush_scheduler,
             compaction_scheduler: store_config.compaction_scheduler,
+            compaction_picker,
             sst_layer: store_config.sst_layer,
             manifest: store_config.manifest,
         });
@@ -1012,7 +1033,7 @@
     </span><span class="kw">pub async fn </span>open(
         name: String,
         store_config: StoreConfig&lt;S&gt;,
-        opts: <span class="kw-2">&amp;</span>OpenOptions,
+        _opts: <span class="kw-2">&amp;</span>OpenOptions,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RegionImpl&lt;S&gt;&gt;&gt; {
         <span class="comment">// Load version meta data from manifest.
         </span><span class="kw">let </span>(version, <span class="kw-2">mut </span>recovered_metadata) = <span class="kw">match </span><span class="self">Self</span>::recover_from_manifest(
@@ -1076,16 +1097,17 @@
             version_control,
             last_flush_millis: AtomicI64::new(<span class="number">0</span>),
         });
-        <span class="kw">let </span>compaction_time_window = store_config
-            .compaction_time_window
-            .or(opts.compaction_time_window);
+
+        <span class="kw">let </span>compaction_picker = compaction_strategy_to_picker(<span class="kw-2">&amp;</span>store_config.compaction_strategy);
         <span class="kw">let </span>writer = Arc::new(RegionWriter::new(
             store_config.memtable_builder,
             store_config.engine_config.clone(),
             store_config.ttl,
-            compaction_time_window,
             store_config.write_buffer_size,
+            store_config.compaction_scheduler.clone(),
+            compaction_picker.clone(),
         ));
+
         <span class="kw">let </span>writer_ctx = WriterContext {
             shared: <span class="kw-2">&amp;</span>shared,
             flush_strategy: <span class="kw-2">&amp;</span>store_config.flush_strategy,
@@ -1095,6 +1117,7 @@
             wal: <span class="kw-2">&amp;</span>wal,
             writer: <span class="kw-2">&amp;</span>writer,
             manifest: <span class="kw-2">&amp;</span>store_config.manifest,
+            compaction_picker: compaction_picker.clone(),
         };
         <span class="comment">// Replay all unflushed data.
         </span>writer
@@ -1114,6 +1137,7 @@
             flush_strategy: store_config.flush_strategy,
             flush_scheduler: store_config.flush_scheduler,
             compaction_scheduler: store_config.compaction_scheduler,
+            compaction_picker,
             sst_layer: store_config.sst_layer,
             manifest: store_config.manifest,
         });
@@ -1230,9 +1254,25 @@
                         }
                     }
                     (RegionMetaAction::Change(c), <span class="prelude-val">Some</span>(v)) =&gt; {
-                        recovered_metadata
+                        <span class="kw">let _ </span>= recovered_metadata
                             .insert(c.committed_sequence, (manifest_version, c.metadata));
                         version = <span class="prelude-val">Some</span>(v);
+                    }
+                    (RegionMetaAction::Remove(r), <span class="prelude-val">Some</span>(v)) =&gt; {
+                        manifest.stop().<span class="kw">await</span><span class="question-mark">?</span>;
+
+                        <span class="kw">let </span>files = v.ssts().mark_all_files_deleted();
+                        <span class="macro">logging::info!</span>(
+                            <span class="string">&quot;Try to remove all SSTs, region: {}, files: {:?}&quot;</span>,
+                            r.region_id,
+                            files
+                        );
+
+                        manifest
+                            .manifest_store()
+                            .delete_all(v.manifest_version())
+                            .<span class="kw">await</span><span class="question-mark">?</span>;
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, recovered_metadata));
                     }
                     (action, <span class="prelude-val">None</span>) =&gt; {
                         actions.push((manifest_version, action));
@@ -1269,6 +1309,7 @@
                 flushed_sequence: e.flushed_sequence,
                 manifest_version,
                 max_memtable_id: <span class="prelude-val">None</span>,
+                compaction_time_window: e.compaction_time_window,
             };
             version.map(|<span class="kw-2">mut </span>v| {
                 v.apply_edit(edit);
@@ -1280,7 +1321,7 @@
     }
 
     <span class="doccomment">/// Compact the region manually.
-    </span><span class="kw">pub async fn </span>compact(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: CompactContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub async fn </span>compact(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>CompactContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.inner.compact(ctx).<span class="kw">await
     </span>}
 
@@ -1319,9 +1360,14 @@
             wal: <span class="kw-2">&amp;</span>inner.wal,
             writer: <span class="kw-2">&amp;</span>inner.writer,
             manifest: <span class="kw-2">&amp;</span>inner.manifest,
+            compaction_picker: inner.compaction_picker.clone(),
         };
 
         inner.writer.replay(recovered_metadata, writer_ctx).<span class="kw">await
+    </span>}
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>write_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.writer.write_buffer_size().<span class="kw">await
     </span>}
 }
 
@@ -1366,11 +1412,12 @@
 
 <span class="kw">struct </span>RegionInner&lt;S: LogStore&gt; {
     shared: SharedDataRef,
-    writer: RegionWriterRef,
+    writer: RegionWriterRef&lt;S&gt;,
     wal: Wal&lt;S&gt;,
     flush_strategy: FlushStrategyRef,
     flush_scheduler: FlushSchedulerRef&lt;S&gt;,
     compaction_scheduler: CompactionSchedulerRef&lt;S&gt;,
+    compaction_picker: CompactionPickerRef&lt;S&gt;,
     sst_layer: AccessLayerRef,
     manifest: RegionManifest,
 }
@@ -1414,6 +1461,7 @@
             wal: <span class="kw-2">&amp;</span><span class="self">self</span>.wal,
             writer: <span class="kw-2">&amp;</span><span class="self">self</span>.writer,
             manifest: <span class="kw-2">&amp;</span><span class="self">self</span>.manifest,
+            compaction_picker: <span class="self">self</span>.compaction_picker.clone(),
         };
         <span class="comment">// The writer would also try to compat the schema of write batch if it finds out the
         // schema version of request is less than current schema version.
@@ -1475,23 +1523,23 @@
             wal: <span class="kw-2">&amp;</span><span class="self">self</span>.wal,
             writer: <span class="kw-2">&amp;</span><span class="self">self</span>.writer,
             manifest: <span class="kw-2">&amp;</span><span class="self">self</span>.manifest,
+            compaction_picker: <span class="self">self</span>.compaction_picker.clone(),
         };
         <span class="self">self</span>.writer.flush(writer_ctx, ctx).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Compact the region manually.
-    </span><span class="kw">async fn </span>compact(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: CompactContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>writer_ctx = WriterContext {
-            shared: <span class="kw-2">&amp;</span><span class="self">self</span>.shared,
-            flush_strategy: <span class="kw-2">&amp;</span><span class="self">self</span>.flush_strategy,
-            flush_scheduler: <span class="kw-2">&amp;</span><span class="self">self</span>.flush_scheduler,
-            compaction_scheduler: <span class="kw-2">&amp;</span><span class="self">self</span>.compaction_scheduler,
-            sst_layer: <span class="kw-2">&amp;</span><span class="self">self</span>.sst_layer,
-            wal: <span class="kw-2">&amp;</span><span class="self">self</span>.wal,
-            writer: <span class="kw-2">&amp;</span><span class="self">self</span>.writer,
-            manifest: <span class="kw-2">&amp;</span><span class="self">self</span>.manifest,
-        };
-        <span class="self">self</span>.writer.compact(writer_ctx, ctx).<span class="kw">await
+    </span><span class="kw">async fn </span>compact(<span class="kw-2">&amp;</span><span class="self">self</span>, compact_ctx: <span class="kw-2">&amp;</span>CompactContext) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.writer
+            .compact(WriterCompactRequest {
+                shared_data: <span class="self">self</span>.shared.clone(),
+                sst_layer: <span class="self">self</span>.sst_layer.clone(),
+                manifest: <span class="self">self</span>.manifest.clone(),
+                wal: <span class="self">self</span>.wal.clone(),
+                region_writer: <span class="self">self</span>.writer.clone(),
+                compact_ctx: <span class="kw-2">*</span>compact_ctx,
+            })
+            .<span class="kw">await
     </span>}
 }
 </code></pre></div></section></main></body></html>

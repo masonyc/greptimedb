@@ -197,14 +197,6 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -222,6 +214,7 @@
 </span><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>api::v1::meta::cluster_server::ClusterServer;
+<span class="kw">use </span>api::v1::meta::ddl_task_server::DdlTaskServer;
 <span class="kw">use </span>api::v1::meta::heartbeat_server::HeartbeatServer;
 <span class="kw">use </span>api::v1::meta::lock_server::LockServer;
 <span class="kw">use </span>api::v1::meta::router_server::RouterServer;
@@ -237,7 +230,6 @@
 <span class="kw">use </span>tokio_stream::wrappers::TcpListenerStream;
 <span class="kw">use </span>tonic::transport::server::Router;
 
-<span class="kw">use </span><span class="kw">crate</span>::cluster::MetaPeerClientBuilder;
 <span class="kw">use </span><span class="kw">crate</span>::election::etcd::EtcdElection;
 <span class="kw">use </span><span class="kw">crate</span>::lock::etcd::EtcdLock;
 <span class="kw">use </span><span class="kw">crate</span>::lock::memory::MemLock;
@@ -269,6 +261,7 @@
         <span class="kw">let </span>http_srv = Arc::new(
             HttpServerBuilder::new(opts.http_opts.clone())
                 .with_metrics_handler(MetricsHandler)
+                .with_greptime_config_options(opts.to_toml_string())
                 .build(),
         );
         <span class="prelude-val">Ok</span>(MetaSrvInstance {
@@ -339,7 +332,7 @@
 
     router
         .serve_with_incoming_shutdown(listener, <span class="kw">async </span>{
-            signal.recv().<span class="kw">await</span>;
+            <span class="kw">let _ </span>= signal.recv().<span class="kw">await</span>;
         })
         .<span class="kw">await
         </span>.context(error::StartGrpcSnafu)<span class="question-mark">?</span>;
@@ -355,6 +348,7 @@
         .add_service(StoreServer::new(meta_srv.clone()))
         .add_service(ClusterServer::new(meta_srv.clone()))
         .add_service(LockServer::new(meta_srv.clone()))
+        .add_service(DdlTaskServer::new(meta_srv.clone()))
         .add_service(admin::make_admin_service(meta_srv))
 }
 
@@ -371,7 +365,7 @@
             .<span class="kw">await
             </span>.context(error::ConnectEtcdSnafu)<span class="question-mark">?</span>;
         (
-            EtcdStore::with_etcd_client(etcd_client.clone())<span class="question-mark">?</span>,
+            EtcdStore::with_etcd_client(etcd_client.clone()),
             <span class="prelude-val">Some</span>(EtcdElection::with_etcd_client(<span class="kw-2">&amp;</span>opts.server_addr, etcd_client.clone()).<span class="kw">await</span><span class="question-mark">?</span>),
             <span class="prelude-val">Some</span>(EtcdLock::with_etcd_client(etcd_client)<span class="question-mark">?</span>),
         )
@@ -379,17 +373,8 @@
 
     <span class="kw">let </span>in_memory = Arc::new(MemStore::default()) <span class="kw">as </span>ResettableKvStoreRef;
 
-    <span class="kw">let </span>meta_peer_client = MetaPeerClientBuilder::default()
-        .election(election.clone())
-        .in_memory(in_memory.clone())
-        .build()
-        <span class="comment">// Safety: all required fields set at initialization
-        </span>.unwrap();
-
     <span class="kw">let </span>selector = <span class="kw">match </span>opts.selector {
-        SelectorType::LoadBased =&gt; Arc::new(LoadBasedSelector {
-            meta_peer_client: meta_peer_client.clone(),
-        }) <span class="kw">as </span>SelectorRef,
+        SelectorType::LoadBased =&gt; Arc::new(LoadBasedSelector) <span class="kw">as </span>SelectorRef,
         SelectorType::LeaseBased =&gt; Arc::new(LeaseBasedSelector) <span class="kw">as </span>SelectorRef,
     };
 
@@ -399,7 +384,6 @@
         .in_memory(in_memory)
         .selector(selector)
         .election(election)
-        .meta_peer_client(meta_peer_client)
         .lock(lock)
         .build()
         .<span class="kw">await

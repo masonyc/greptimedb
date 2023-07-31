@@ -550,11 +550,10 @@
         <span class="kw">let </span>schema = req.db_name;
         <span class="kw">if </span><span class="self">self
             </span>.catalog_manager
-            .schema(<span class="kw-2">&amp;</span>catalog, <span class="kw-2">&amp;</span>schema)
+            .schema_exist(<span class="kw-2">&amp;</span>catalog, <span class="kw-2">&amp;</span>schema)
             .<span class="kw">await
             </span>.context(CatalogSnafu)<span class="question-mark">?
-            </span>.is_some()
-        {
+        </span>{
             <span class="kw">return if </span>req.create_if_not_exists {
                 <span class="prelude-val">Ok</span>(Output::AffectedRows(<span class="number">1</span>))
             } <span class="kw">else </span>{
@@ -566,7 +565,8 @@
             catalog,
             schema: schema.clone(),
         };
-        <span class="self">self</span>.catalog_manager
+        <span class="kw">let _ </span>= <span class="self">self
+            </span>.catalog_manager
             .register_schema(reg_req)
             .<span class="kw">await
             </span>.context(RegisterSchemaSnafu)<span class="question-mark">?</span>;

@@ -621,7 +621,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>common_catalog::consts::MITO_ENGINE;
-    <span class="kw">use </span>common_meta::instruction::TableIdent;
+    <span class="kw">use </span>common_meta::ident::TableIdent;
     <span class="kw">use </span>rand::Rng;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -647,7 +647,7 @@
 
         {
             <span class="kw">let </span><span class="kw-2">mut </span>iter = container.iter();
-            <span class="macro">assert!</span>(iter.next().is_some());
+            <span class="kw">let _ </span>= iter.next().unwrap();
             <span class="macro">assert!</span>(iter.next().is_none());
         }
 
@@ -671,7 +671,7 @@
             datanode_id: <span class="number">2</span>,
             region_number: <span class="number">1</span>,
         };
-        container.get_failure_detector(ident.clone());
+        <span class="kw">let _ </span>= container.get_failure_detector(ident.clone());
 
         <span class="kw">let </span>region_failover_manager = create_region_failover_manager();
         <span class="kw">let </span><span class="kw-2">mut </span>runner = FailureDetectRunner::new(<span class="prelude-val">None</span>, region_failover_manager);

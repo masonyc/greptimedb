@@ -2019,6 +2019,33 @@
 <a href="#2019" id="2019">2019</a>
 <a href="#2020" id="2020">2020</a>
 <a href="#2021" id="2021">2021</a>
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
+<a href="#2046" id="2046">2046</a>
+<a href="#2047" id="2047">2047</a>
+<a href="#2048" id="2048">2048</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -2033,7 +2060,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-</span><span class="kw">use </span>std::collections::{BTreeSet, HashSet};
+</span><span class="kw">use </span>std::collections::{BTreeSet, HashSet, VecDeque};
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::UNIX_EPOCH;
@@ -2134,6 +2161,7 @@
             table_provider,
             ctx: PromPlannerContext::from_eval_stmt(<span class="kw-2">&amp;</span>stmt),
         };
+
         planner.prom_expr_to_plan(stmt.expr).<span class="kw">await
     </span>}
 
@@ -2205,11 +2233,8 @@
                         <span class="self">self</span>.ctx.time_index_column = <span class="prelude-val">Some</span>(DEFAULT_TIME_INDEX_COLUMN.to_string());
                         <span class="self">self</span>.ctx.field_columns = <span class="macro">vec!</span>[DEFAULT_FIELD_COLUMN.to_string()];
                         <span class="self">self</span>.ctx.table_name = <span class="prelude-val">Some</span>(String::new());
-                        <span class="kw">let </span>field_expr = DfExpr::BinaryExpr(BinaryExpr {
-                            left: Box::new(lhs),
-                            op: <span class="self">Self</span>::prom_token_to_binary_op(<span class="kw-2">*</span>op)<span class="question-mark">?</span>,
-                            right: Box::new(rhs),
-                        });
+                        <span class="kw">let </span>field_expr_builder = <span class="self">Self</span>::prom_token_to_binary_expr_builder(<span class="kw-2">*</span>op)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>field_expr = field_expr_builder(lhs, rhs)<span class="question-mark">?</span>;
 
                         LogicalPlan::Extension(Extension {
                             node: Arc::new(
@@ -2229,11 +2254,10 @@
                     </span>(<span class="prelude-val">Some</span>(expr), <span class="prelude-val">None</span>) =&gt; {
                         <span class="kw">let </span>input = <span class="self">self</span>.prom_expr_to_plan(<span class="kw-2">*</span>rhs.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
                         <span class="kw">let </span>bin_expr_builder = |col: <span class="kw-2">&amp;</span>String| {
-                            <span class="kw">let </span><span class="kw-2">mut </span>binary_expr = DfExpr::BinaryExpr(BinaryExpr {
-                                left: Box::new(expr.clone()),
-                                op: <span class="self">Self</span>::prom_token_to_binary_op(<span class="kw-2">*</span>op)<span class="question-mark">?</span>,
-                                right: Box::new(DfExpr::Column(col.into())),
-                            });
+                            <span class="kw">let </span>binary_expr_builder = <span class="self">Self</span>::prom_token_to_binary_expr_builder(<span class="kw-2">*</span>op)<span class="question-mark">?</span>;
+                            <span class="kw">let </span><span class="kw-2">mut </span>binary_expr =
+                                binary_expr_builder(expr.clone(), DfExpr::Column(col.into()))<span class="question-mark">?</span>;
+
                             <span class="kw">if </span>is_comparison_op &amp;&amp; should_return_bool {
                                 binary_expr = DfExpr::Cast(Cast {
                                     expr: Box::new(binary_expr),
@@ -2252,11 +2276,10 @@
                     </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(expr)) =&gt; {
                         <span class="kw">let </span>input = <span class="self">self</span>.prom_expr_to_plan(<span class="kw-2">*</span>lhs.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
                         <span class="kw">let </span>bin_expr_builder = |col: <span class="kw-2">&amp;</span>String| {
-                            <span class="kw">let </span><span class="kw-2">mut </span>binary_expr = DfExpr::BinaryExpr(BinaryExpr {
-                                left: Box::new(DfExpr::Column(col.into())),
-                                op: <span class="self">Self</span>::prom_token_to_binary_op(<span class="kw-2">*</span>op)<span class="question-mark">?</span>,
-                                right: Box::new(expr.clone()),
-                            });
+                            <span class="kw">let </span>binary_expr_builder = <span class="self">Self</span>::prom_token_to_binary_expr_builder(<span class="kw-2">*</span>op)<span class="question-mark">?</span>;
+                            <span class="kw">let </span><span class="kw-2">mut </span>binary_expr =
+                                binary_expr_builder(DfExpr::Column(col.into()), expr.clone())<span class="question-mark">?</span>;
+
                             <span class="kw">if </span>is_comparison_op &amp;&amp; should_return_bool {
                                 binary_expr = DfExpr::Cast(Cast {
                                     expr: Box::new(binary_expr),
@@ -2296,11 +2319,11 @@
                                 .context(DataFusionPlanningSnafu)<span class="question-mark">?
                                 </span>.qualified_column();
 
-                            <span class="kw">let </span><span class="kw-2">mut </span>binary_expr = DfExpr::BinaryExpr(BinaryExpr {
-                                left: Box::new(DfExpr::Column(left_col)),
-                                op: <span class="self">Self</span>::prom_token_to_binary_op(<span class="kw-2">*</span>op)<span class="question-mark">?</span>,
-                                right: Box::new(DfExpr::Column(right_col)),
-                            });
+                            <span class="kw">let </span>binary_expr_builder = <span class="self">Self</span>::prom_token_to_binary_expr_builder(<span class="kw-2">*</span>op)<span class="question-mark">?</span>;
+                            <span class="kw">let </span><span class="kw-2">mut </span>binary_expr = binary_expr_builder(
+                                DfExpr::Column(left_col),
+                                DfExpr::Column(right_col),
+                            )<span class="question-mark">?</span>;
                             <span class="kw">if </span>is_comparison_op &amp;&amp; should_return_bool {
                                 binary_expr = DfExpr::Cast(Cast {
                                     expr: Box::new(binary_expr),
@@ -2508,7 +2531,7 @@
                     .get_or_insert_default()
                     .push(matcher.clone());
             } <span class="kw">else </span>{
-                matchers.insert(matcher.clone());
+                <span class="kw">let _ </span>= matchers.insert(matcher.clone());
             }
         }
         <span class="prelude-val">Ok</span>(Matchers { matchers })
@@ -2559,20 +2582,20 @@
                 <span class="kw">match </span><span class="kw-2">&amp;</span>matcher.op {
                     MatchOp::Equal =&gt; {
                         <span class="kw">if </span>col_set.contains(<span class="kw-2">&amp;</span>matcher.value) {
-                            result_set.insert(matcher.value.clone());
+                            <span class="kw">let _ </span>= result_set.insert(matcher.value.clone());
                         } <span class="kw">else </span>{
                             <span class="kw">return </span><span class="prelude-val">Err</span>(ColumnNotFoundSnafu {
-                                col: <span class="self">self</span>.ctx.table_name.clone().unwrap(),
+                                col: matcher.value.clone(),
                             }
                             .build());
                         }
                     }
                     MatchOp::NotEqual =&gt; {
                         <span class="kw">if </span>col_set.contains(<span class="kw-2">&amp;</span>matcher.value) {
-                            reverse_set.insert(matcher.value.clone());
+                            <span class="kw">let _ </span>= reverse_set.insert(matcher.value.clone());
                         } <span class="kw">else </span>{
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(ValueNotFoundSnafu {
-                                table: <span class="self">self</span>.ctx.table_name.clone().unwrap(),
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(ColumnNotFoundSnafu {
+                                col: matcher.value.clone(),
                             }
                             .build());
                         }
@@ -2580,14 +2603,14 @@
                     MatchOp::Re(regex) =&gt; {
                         <span class="kw">for </span>col <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.ctx.field_columns {
                             <span class="kw">if </span>regex.is_match(col) {
-                                result_set.insert(col.clone());
+                                <span class="kw">let _ </span>= result_set.insert(col.clone());
                             }
                         }
                     }
                     MatchOp::NotRe(regex) =&gt; {
                         <span class="kw">for </span>col <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.ctx.field_columns {
                             <span class="kw">if </span>regex.is_match(col) {
-                                reverse_set.insert(col.clone());
+                                <span class="kw">let _ </span>= reverse_set.insert(col.clone());
                             }
                         }
                     }
@@ -2598,7 +2621,7 @@
                 result_set = col_set.into_iter().cloned().collect();
             }
             <span class="kw">for </span>col <span class="kw">in </span>reverse_set {
-                result_set.remove(<span class="kw-2">&amp;</span>col);
+                <span class="kw">let _ </span>= result_set.remove(<span class="kw-2">&amp;</span>col);
             }
 
             <span class="self">self</span>.ctx.field_columns = result_set.iter().cloned().collect();
@@ -2691,15 +2714,15 @@
                 <span class="comment">// remove &quot;without&quot;-ed fields
                 // nonexistence label will be ignored
                 </span><span class="kw">for </span>label <span class="kw">in </span>labels {
-                    all_fields.remove(label);
+                    <span class="kw">let _ </span>= all_fields.remove(label);
                 }
 
                 <span class="comment">// remove time index and value fields
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(time_index) = <span class="kw-2">&amp;</span><span class="self">self</span>.ctx.time_index_column {
-                    all_fields.remove(time_index);
+                    <span class="kw">let _ </span>= all_fields.remove(time_index);
                 }
                 <span class="kw">for </span>value <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.ctx.field_columns {
-                    all_fields.remove(value);
+                    <span class="kw">let _ </span>= all_fields.remove(value);
                 }
 
                 <span class="comment">// change the tag columns in context
@@ -2854,11 +2877,12 @@
     </span><span class="kw">fn </span>create_function_expr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         func: <span class="kw-2">&amp;</span>Function,
-        <span class="kw-2">mut </span>other_input_exprs: Vec&lt;DfExpr&gt;,
+        other_input_exprs: Vec&lt;DfExpr&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;DfExpr&gt;&gt; {
         <span class="comment">// TODO(ruihang): check function args list
+        </span><span class="kw">let </span><span class="kw-2">mut </span>other_input_exprs: VecDeque&lt;DfExpr&gt; = other_input_exprs.into();
 
-        // TODO(ruihang): set this according to in-param list
+        <span class="comment">// TODO(ruihang): set this according to in-param list
         </span><span class="kw">let </span>field_column_pos = <span class="number">0</span>;
         <span class="kw">let </span>scalar_func = <span class="kw">match </span>func.name {
             <span class="string">&quot;increase&quot; </span>=&gt; ScalarFunc::ExtrapolateUdf(Increase::scalar_udf(
@@ -2886,8 +2910,8 @@
             <span class="string">&quot;stddev_over_time&quot; </span>=&gt; ScalarFunc::Udf(StddevOverTime::scalar_udf()),
             <span class="string">&quot;stdvar_over_time&quot; </span>=&gt; ScalarFunc::Udf(StdvarOverTime::scalar_udf()),
             <span class="string">&quot;quantile_over_time&quot; </span>=&gt; {
-                <span class="kw">let </span>quantile_expr = <span class="kw">match </span>other_input_exprs.get(<span class="number">0</span>) {
-                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Float64(<span class="prelude-val">Some</span>(quantile)))) =&gt; <span class="kw-2">*</span>quantile,
+                <span class="kw">let </span>quantile_expr = <span class="kw">match </span>other_input_exprs.pop_front() {
+                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Float64(<span class="prelude-val">Some</span>(quantile)))) =&gt; quantile,
                     other =&gt; UnexpectedPlanExprSnafu {
                         desc: <span class="macro">format!</span>(<span class="string">&quot;expect f64 literal as quantile, but found {:?}&quot;</span>, other),
                     }
@@ -2896,8 +2920,8 @@
                 ScalarFunc::Udf(QuantileOverTime::scalar_udf(quantile_expr))
             }
             <span class="string">&quot;predict_linear&quot; </span>=&gt; {
-                <span class="kw">let </span>t_expr = <span class="kw">match </span>other_input_exprs.get(<span class="number">0</span>) {
-                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Time64Microsecond(<span class="prelude-val">Some</span>(t)))) =&gt; <span class="kw-2">*</span>t,
+                <span class="kw">let </span>t_expr = <span class="kw">match </span>other_input_exprs.pop_front() {
+                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Time64Microsecond(<span class="prelude-val">Some</span>(t)))) =&gt; t,
                     other =&gt; UnexpectedPlanExprSnafu {
                         desc: <span class="macro">format!</span>(<span class="string">&quot;expect i64 literal as t, but found {:?}&quot;</span>, other),
                     }
@@ -2906,8 +2930,8 @@
                 ScalarFunc::Udf(PredictLinear::scalar_udf(t_expr))
             }
             <span class="string">&quot;holt_winters&quot; </span>=&gt; {
-                <span class="kw">let </span>sf_exp = <span class="kw">match </span>other_input_exprs.get(<span class="number">0</span>) {
-                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Float64(<span class="prelude-val">Some</span>(sf)))) =&gt; <span class="kw-2">*</span>sf,
+                <span class="kw">let </span>sf_exp = <span class="kw">match </span>other_input_exprs.pop_front() {
+                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Float64(<span class="prelude-val">Some</span>(sf)))) =&gt; sf,
                     other =&gt; UnexpectedPlanExprSnafu {
                         desc: <span class="macro">format!</span>(
                             <span class="string">&quot;expect f64 literal as smoothing factor, but found {:?}&quot;</span>,
@@ -2916,8 +2940,8 @@
                     }
                     .fail()<span class="question-mark">?</span>,
                 };
-                <span class="kw">let </span>tf_exp = <span class="kw">match </span>other_input_exprs.get(<span class="number">1</span>) {
-                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Float64(<span class="prelude-val">Some</span>(tf)))) =&gt; <span class="kw-2">*</span>tf,
+                <span class="kw">let </span>tf_exp = <span class="kw">match </span>other_input_exprs.pop_front() {
+                    <span class="prelude-val">Some</span>(DfExpr::Literal(ScalarValue::Float64(<span class="prelude-val">Some</span>(tf)))) =&gt; tf,
                     other =&gt; UnexpectedPlanExprSnafu {
                         desc: <span class="macro">format!</span>(<span class="string">&quot;expect f64 literal as trend factor, but found {:?}&quot;</span>, other),
                     }
@@ -2945,10 +2969,10 @@
                     other_input_exprs.insert(field_column_pos, col_expr);
                     <span class="kw">let </span>fn_expr = DfExpr::ScalarFunction(ScalarFunction {
                         fun,
-                        args: other_input_exprs.clone(),
+                        args: other_input_exprs.clone().into(),
                     });
                     exprs.push(fn_expr);
-                    other_input_exprs.remove(field_column_pos);
+                    <span class="kw">let _ </span>= other_input_exprs.remove(field_column_pos);
                 }
                 ScalarFunc::Udf(fun) =&gt; {
                     <span class="kw">let </span>ts_range_expr = DfExpr::Column(Column::from_name(
@@ -2960,11 +2984,11 @@
                     other_input_exprs.insert(field_column_pos + <span class="number">1</span>, col_expr);
                     <span class="kw">let </span>fn_expr = DfExpr::ScalarUDF(ScalarUDF {
                         fun: Arc::new(fun),
-                        args: other_input_exprs.clone(),
+                        args: other_input_exprs.clone().into(),
                     });
                     exprs.push(fn_expr);
-                    other_input_exprs.remove(field_column_pos + <span class="number">1</span>);
-                    other_input_exprs.remove(field_column_pos);
+                    <span class="kw">let _ </span>= other_input_exprs.remove(field_column_pos + <span class="number">1</span>);
+                    <span class="kw">let _ </span>= other_input_exprs.remove(field_column_pos);
                 }
                 ScalarFunc::ExtrapolateUdf(fun) =&gt; {
                     <span class="kw">let </span>ts_range_expr = DfExpr::Column(Column::from_name(
@@ -2978,12 +3002,12 @@
                         .insert(field_column_pos + <span class="number">2</span>, <span class="self">self</span>.create_time_index_column_expr()<span class="question-mark">?</span>);
                     <span class="kw">let </span>fn_expr = DfExpr::ScalarUDF(ScalarUDF {
                         fun: Arc::new(fun),
-                        args: other_input_exprs.clone(),
+                        args: other_input_exprs.clone().into(),
                     });
                     exprs.push(fn_expr);
-                    other_input_exprs.remove(field_column_pos + <span class="number">2</span>);
-                    other_input_exprs.remove(field_column_pos + <span class="number">1</span>);
-                    other_input_exprs.remove(field_column_pos);
+                    <span class="kw">let _ </span>= other_input_exprs.remove(field_column_pos + <span class="number">2</span>);
+                    <span class="kw">let _ </span>= other_input_exprs.remove(field_column_pos + <span class="number">1</span>);
+                    <span class="kw">let _ </span>= other_input_exprs.remove(field_column_pos);
                 }
             }
         }
@@ -3123,36 +3147,66 @@
             PromExpr::Paren(ParenExpr { expr }) =&gt; <span class="self">Self</span>::try_build_literal_expr(expr),
             <span class="comment">// TODO(ruihang): support Unary operator
             </span>PromExpr::Unary(UnaryExpr { expr, .. }) =&gt; <span class="self">Self</span>::try_build_literal_expr(expr),
-            PromExpr::Binary(PromBinaryExpr { lhs, rhs, op, .. }) =&gt; {
+            PromExpr::Binary(PromBinaryExpr {
+                lhs,
+                rhs,
+                op,
+                modifier,
+            }) =&gt; {
                 <span class="kw">let </span>lhs = <span class="self">Self</span>::try_build_literal_expr(lhs)<span class="question-mark">?</span>;
                 <span class="kw">let </span>rhs = <span class="self">Self</span>::try_build_literal_expr(rhs)<span class="question-mark">?</span>;
-                <span class="kw">let </span>op = <span class="self">Self</span>::prom_token_to_binary_op(<span class="kw-2">*</span>op).ok()<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(DfExpr::BinaryExpr(BinaryExpr {
-                    left: Box::new(lhs),
-                    op,
-                    right: Box::new(rhs),
-                }))
+                <span class="kw">let </span>is_comparison_op = <span class="self">Self</span>::is_token_a_comparison_op(<span class="kw-2">*</span>op);
+                <span class="kw">let </span>expr_builder = <span class="self">Self</span>::prom_token_to_binary_expr_builder(<span class="kw-2">*</span>op).ok()<span class="question-mark">?</span>;
+                <span class="kw">let </span>expr = expr_builder(lhs, rhs).ok()<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>should_return_bool = <span class="kw">if let </span><span class="prelude-val">Some</span>(m) = modifier {
+                    m.return_bool
+                } <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>};
+                <span class="kw">if </span>is_comparison_op &amp;&amp; should_return_bool {
+                    <span class="prelude-val">Some</span>(DfExpr::Cast(Cast {
+                        expr: Box::new(expr),
+                        data_type: ArrowDataType::Float64,
+                    }))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(expr)
+                }
             }
         }
     }
 
-    <span class="kw">fn </span>prom_token_to_binary_op(token: TokenType) -&gt; <span class="prelude-ty">Result</span>&lt;Operator&gt; {
+    <span class="doccomment">/// Return a lambda to build binary expression from token.
+    /// Because some binary operator are function in DataFusion like `atan2` or `^`.
+    </span><span class="attr">#[allow(clippy::type_complexity)]
+    </span><span class="kw">fn </span>prom_token_to_binary_expr_builder(
+        token: TokenType,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DfExpr, DfExpr) -&gt; <span class="prelude-ty">Result</span>&lt;DfExpr&gt;&gt;&gt; {
         <span class="kw">match </span>token.id() {
-            token::T_ADD =&gt; <span class="prelude-val">Ok</span>(Operator::Plus),
-            token::T_SUB =&gt; <span class="prelude-val">Ok</span>(Operator::Minus),
-            token::T_MUL =&gt; <span class="prelude-val">Ok</span>(Operator::Multiply),
-            token::T_DIV =&gt; <span class="prelude-val">Ok</span>(Operator::Divide),
-            token::T_MOD =&gt; <span class="prelude-val">Ok</span>(Operator::Modulo),
-            token::T_EQLC =&gt; <span class="prelude-val">Ok</span>(Operator::Eq),
-            token::T_NEQ =&gt; <span class="prelude-val">Ok</span>(Operator::NotEq),
-            token::T_GTR =&gt; <span class="prelude-val">Ok</span>(Operator::Gt),
-            token::T_LSS =&gt; <span class="prelude-val">Ok</span>(Operator::Lt),
-            token::T_GTE =&gt; <span class="prelude-val">Ok</span>(Operator::GtEq),
-            token::T_LTE =&gt; <span class="prelude-val">Ok</span>(Operator::LtEq),
-            <span class="comment">// TODO(ruihang): support these two operators
-            // token::T_POW =&gt; Ok(Operator::Power),
-            // token::T_ATAN2 =&gt; Ok(Operator::Atan2),
-            </span><span class="kw">_ </span>=&gt; UnexpectedTokenSnafu { token }.fail(),
+            token::T_ADD =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs + rhs))),
+            token::T_SUB =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs - rhs))),
+            token::T_MUL =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs * rhs))),
+            token::T_DIV =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs / rhs))),
+            token::T_MOD =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs: DfExpr, rhs| <span class="prelude-val">Ok</span>(lhs % rhs))),
+            token::T_EQLC =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs.eq(rhs)))),
+            token::T_NEQ =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs.not_eq(rhs)))),
+            token::T_GTR =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs.gt(rhs)))),
+            token::T_LSS =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs.lt(rhs)))),
+            token::T_GTE =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs.gt_eq(rhs)))),
+            token::T_LTE =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| <span class="prelude-val">Ok</span>(lhs.lt_eq(rhs)))),
+            token::T_POW =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| {
+                <span class="prelude-val">Ok</span>(DfExpr::ScalarFunction(ScalarFunction {
+                    fun: BuiltinScalarFunction::Power,
+                    args: <span class="macro">vec!</span>[lhs, rhs],
+                }))
+            })),
+            token::T_ATAN2 =&gt; <span class="prelude-val">Ok</span>(Box::new(|lhs, rhs| {
+                <span class="prelude-val">Ok</span>(DfExpr::ScalarFunction(ScalarFunction {
+                    fun: BuiltinScalarFunction::Atan2,
+                    args: <span class="macro">vec!</span>[lhs, rhs],
+                }))
+            })),
+            <span class="kw">_ </span>=&gt; UnexpectedTokenSnafu { token }.fail(),
         }
     }
 
@@ -3359,7 +3413,7 @@
             .unwrap();
         <span class="kw">let </span>table = Arc::new(EmptyTable::from_table_info(<span class="kw-2">&amp;</span>table_info));
         <span class="kw">let </span>catalog_list = Arc::new(MemoryCatalogManager::default());
-        catalog_list
+        <span class="macro">assert!</span>(catalog_list
             .register_table(RegisterTableRequest {
                 catalog: DEFAULT_CATALOG_NAME.to_string(),
                 schema: DEFAULT_SCHEMA_NAME.to_string(),
@@ -3368,8 +3422,8 @@
                 table,
             })
             .<span class="kw">await
-            </span>.unwrap();
-        DfTableSourceProvider::new(catalog_list, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>QueryContext::new())
+            </span>.is_ok());
+        DfTableSourceProvider::new(catalog_list, <span class="bool-val">false</span>, QueryContext::arc().as_ref())
     }
 
     <span class="comment">// {

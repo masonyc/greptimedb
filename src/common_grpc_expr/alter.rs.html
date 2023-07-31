@@ -345,18 +345,6 @@
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
 <a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -393,11 +381,11 @@
 <span class="kw">const </span>LOCATION_TYPE_AFTER: i32 = LocationType::After <span class="kw">as </span>i32;
 
 <span class="doccomment">/// Convert an [`AlterExpr`] to an [`AlterTableRequest`]
-</span><span class="kw">pub fn </span>alter_expr_to_request(expr: AlterExpr) -&gt; <span class="prelude-ty">Result</span>&lt;AlterTableRequest&gt; {
+</span><span class="kw">pub fn </span>alter_expr_to_request(table_id: TableId, expr: AlterExpr) -&gt; <span class="prelude-ty">Result</span>&lt;AlterTableRequest&gt; {
     <span class="kw">let </span>catalog_name = expr.catalog_name;
     <span class="kw">let </span>schema_name = expr.schema_name;
     <span class="kw">let </span>kind = expr.kind.context(MissingFieldSnafu { field: <span class="string">&quot;kind&quot; </span>})<span class="question-mark">?</span>;
-    <span class="kw">match </span>kind {
+    <span class="kw">let </span>alter_kind = <span class="kw">match </span>kind {
         Kind::AddColumns(add_columns) =&gt; {
             <span class="kw">let </span>add_column_requests = add_columns
                 .add_columns
@@ -420,42 +408,27 @@
                 })
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;&gt;()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>alter_kind = AlterKind::AddColumns {
+            AlterKind::AddColumns {
                 columns: add_column_requests,
-            };
-
-            <span class="kw">let </span>request = AlterTableRequest {
-                catalog_name,
-                schema_name,
-                table_name: expr.table_name,
-                alter_kind,
-            };
-            <span class="prelude-val">Ok</span>(request)
+            }
         }
-        Kind::DropColumns(DropColumns { drop_columns }) =&gt; {
-            <span class="kw">let </span>alter_kind = AlterKind::DropColumns {
-                names: drop_columns.into_iter().map(|c| c.name).collect(),
-            };
-
-            <span class="kw">let </span>request = AlterTableRequest {
-                catalog_name,
-                schema_name,
-                table_name: expr.table_name,
-                alter_kind,
-            };
-            <span class="prelude-val">Ok</span>(request)
-        }
+        Kind::DropColumns(DropColumns { drop_columns }) =&gt; AlterKind::DropColumns {
+            names: drop_columns.into_iter().map(|c| c.name).collect(),
+        },
         Kind::RenameTable(RenameTable { new_table_name }) =&gt; {
-            <span class="kw">let </span>alter_kind = AlterKind::RenameTable { new_table_name };
-            <span class="kw">let </span>request = AlterTableRequest {
-                catalog_name,
-                schema_name,
-                table_name: expr.table_name,
-                alter_kind,
-            };
-            <span class="prelude-val">Ok</span>(request)
+            AlterKind::RenameTable { new_table_name }
         }
-    }
+    };
+
+    <span class="kw">let </span>request = AlterTableRequest {
+        catalog_name,
+        schema_name,
+        table_name: expr.table_name,
+        table_id,
+        alter_kind,
+        table_version: <span class="prelude-val">Some</span>(expr.table_version),
+    };
+    <span class="prelude-val">Ok</span>(request)
 }
 
 <span class="kw">pub fn </span>create_table_schema(expr: <span class="kw-2">&amp;</span>CreateTableExpr, require_time_index: bool) -&gt; <span class="prelude-ty">Result</span>&lt;RawSchema&gt; {
@@ -596,9 +569,10 @@
                     location: <span class="prelude-val">None</span>,
                 }],
             })),
+            ..Default::default()
         };
 
-        <span class="kw">let </span>alter_request = alter_expr_to_request(expr).unwrap();
+        <span class="kw">let </span>alter_request = alter_expr_to_request(<span class="number">1</span>, expr).unwrap();
         <span class="macro">assert_eq!</span>(alter_request.catalog_name, <span class="string">&quot;&quot;</span>);
         <span class="macro">assert_eq!</span>(alter_request.schema_name, <span class="string">&quot;&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="string">&quot;monitor&quot;</span>.to_string(), alter_request.table_name);
@@ -653,9 +627,10 @@
                     },
                 ],
             })),
+            ..Default::default()
         };
 
-        <span class="kw">let </span>alter_request = alter_expr_to_request(expr).unwrap();
+        <span class="kw">let </span>alter_request = alter_expr_to_request(<span class="number">1</span>, expr).unwrap();
         <span class="macro">assert_eq!</span>(alter_request.catalog_name, <span class="string">&quot;&quot;</span>);
         <span class="macro">assert_eq!</span>(alter_request.schema_name, <span class="string">&quot;&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="string">&quot;monitor&quot;</span>.to_string(), alter_request.table_name);
@@ -701,9 +676,10 @@
                     name: <span class="string">&quot;mem_usage&quot;</span>.to_string(),
                 }],
             })),
+            ..Default::default()
         };
 
-        <span class="kw">let </span>alter_request = alter_expr_to_request(expr).unwrap();
+        <span class="kw">let </span>alter_request = alter_expr_to_request(<span class="number">1</span>, expr).unwrap();
         <span class="macro">assert_eq!</span>(alter_request.catalog_name, <span class="string">&quot;test_catalog&quot;</span>);
         <span class="macro">assert_eq!</span>(alter_request.schema_name, <span class="string">&quot;test_schema&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="string">&quot;monitor&quot;</span>.to_string(), alter_request.table_name);

@@ -74,6 +74,17 @@
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -91,26 +102,30 @@
 </span><span class="kw">use </span>common_telemetry::logging::LoggingOptions;
 <span class="kw">use </span>meta_client::MetaClientOptions;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>servers::heartbeat_options::HeartbeatOptions;
 <span class="kw">use </span>servers::http::HttpOptions;
 <span class="kw">use </span>servers::Mode;
 
 <span class="kw">use </span><span class="kw">crate</span>::service_config::{
-    GrpcOptions, InfluxdbOptions, MysqlOptions, OpentsdbOptions, PostgresOptions, PromOptions,
-    PrometheusOptions,
+    GrpcOptions, InfluxdbOptions, MysqlOptions, OpentsdbOptions, OtlpOptions, PostgresOptions,
+    PromStoreOptions, PrometheusOptions,
 };
 
 <span class="attr">#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 </span><span class="kw">pub struct </span>FrontendOptions {
     <span class="kw">pub </span>mode: Mode,
+    <span class="kw">pub </span>node_id: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>heartbeat: HeartbeatOptions,
     <span class="kw">pub </span>http_options: <span class="prelude-ty">Option</span>&lt;HttpOptions&gt;,
     <span class="kw">pub </span>grpc_options: <span class="prelude-ty">Option</span>&lt;GrpcOptions&gt;,
     <span class="kw">pub </span>mysql_options: <span class="prelude-ty">Option</span>&lt;MysqlOptions&gt;,
     <span class="kw">pub </span>postgres_options: <span class="prelude-ty">Option</span>&lt;PostgresOptions&gt;,
     <span class="kw">pub </span>opentsdb_options: <span class="prelude-ty">Option</span>&lt;OpentsdbOptions&gt;,
     <span class="kw">pub </span>influxdb_options: <span class="prelude-ty">Option</span>&lt;InfluxdbOptions&gt;,
+    <span class="kw">pub </span>prom_store_options: <span class="prelude-ty">Option</span>&lt;PromStoreOptions&gt;,
     <span class="kw">pub </span>prometheus_options: <span class="prelude-ty">Option</span>&lt;PrometheusOptions&gt;,
-    <span class="kw">pub </span>prom_options: <span class="prelude-ty">Option</span>&lt;PromOptions&gt;,
+    <span class="kw">pub </span>otlp_options: <span class="prelude-ty">Option</span>&lt;OtlpOptions&gt;,
     <span class="kw">pub </span>meta_client_options: <span class="prelude-ty">Option</span>&lt;MetaClientOptions&gt;,
     <span class="kw">pub </span>logging: LoggingOptions,
 }
@@ -119,14 +134,17 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             mode: Mode::Standalone,
+            node_id: <span class="prelude-val">None</span>,
+            heartbeat: HeartbeatOptions::default(),
             http_options: <span class="prelude-val">Some</span>(HttpOptions::default()),
             grpc_options: <span class="prelude-val">Some</span>(GrpcOptions::default()),
             mysql_options: <span class="prelude-val">Some</span>(MysqlOptions::default()),
             postgres_options: <span class="prelude-val">Some</span>(PostgresOptions::default()),
             opentsdb_options: <span class="prelude-val">Some</span>(OpentsdbOptions::default()),
             influxdb_options: <span class="prelude-val">Some</span>(InfluxdbOptions::default()),
+            prom_store_options: <span class="prelude-val">Some</span>(PromStoreOptions::default()),
             prometheus_options: <span class="prelude-val">Some</span>(PrometheusOptions::default()),
-            prom_options: <span class="prelude-val">Some</span>(PromOptions::default()),
+            otlp_options: <span class="prelude-val">Some</span>(OtlpOptions::default()),
             meta_client_options: <span class="prelude-val">None</span>,
             logging: LoggingOptions::default(),
         }
@@ -136,6 +154,10 @@
 <span class="kw">impl </span>FrontendOptions {
     <span class="kw">pub fn </span>env_list_keys() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]&gt; {
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;meta_client_options.metasrv_addrs&quot;</span>])
+    }
+
+    <span class="kw">pub fn </span>to_toml_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        toml::to_string(<span class="kw-2">&amp;</span><span class="self">self</span>).unwrap()
     }
 }
 

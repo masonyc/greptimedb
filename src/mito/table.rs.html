@@ -728,69 +728,6 @@
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
-<a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
-<a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
-<a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -817,7 +754,6 @@
 <span class="kw">use </span>common_datasource::compression::CompressionType;
 <span class="kw">use </span>common_error::ext::BoxedError;
 <span class="kw">use </span>common_query::logical_plan::Expr;
-<span class="kw">use </span>common_query::physical_plan::PhysicalPlanRef;
 <span class="kw">use </span>common_recordbatch::error::ExternalSnafu;
 <span class="kw">use </span>common_recordbatch::{RecordBatch, RecordBatchStreamAdaptor, SendableRecordBatchStream};
 <span class="kw">use </span>common_telemetry::{info, logging};
@@ -827,8 +763,9 @@
 <span class="kw">use </span>snafu::{ensure, OptionExt, ResultExt};
 <span class="kw">use </span>store_api::manifest::{<span class="self">self</span>, Manifest, ManifestVersion, MetaActionIterator};
 <span class="kw">use </span>store_api::storage::{
-    AddColumn, AlterOperation, AlterRequest, ChunkReader, FlushContext, FlushReason, ReadContext,
-    Region, RegionMeta, RegionNumber, ScanRequest, SchemaRef, Snapshot, WriteContext, WriteRequest,
+    AddColumn, AlterOperation, AlterRequest, ChunkReader, CompactContext, FlushContext,
+    FlushReason, ReadContext, Region, RegionMeta, RegionNumber, ScanRequest, SchemaRef, Snapshot,
+    WriteContext, WriteRequest,
 };
 <span class="kw">use </span>table::error::{
     InvalidTableSnafu, RegionSchemaMismatchSnafu, <span class="prelude-ty">Result </span><span class="kw">as </span>TableResult, TableOperationSnafu,
@@ -839,7 +776,6 @@
 <span class="kw">use </span>table::requests::{
     AddColumnRequest, AlterKind, AlterTableRequest, DeleteRequest, InsertRequest,
 };
-<span class="kw">use </span>table::table::scan::StreamScanAdapter;
 <span class="kw">use </span>table::table::{AlterContext, Table};
 <span class="kw">use </span>table::{error <span class="kw">as </span>table_error, RegionStat};
 <span class="kw">use </span>tokio::sync::Mutex;
@@ -932,88 +868,6 @@
 
     <span class="kw">fn </span>table_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TableInfoRef {
         <span class="self">self</span>.table_info.load_full()
-    }
-
-    <span class="kw">async fn </span>scan(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        projection: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;usize&gt;&gt;,
-        filters: <span class="kw-2">&amp;</span>[Expr],
-        _limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    ) -&gt; TableResult&lt;PhysicalPlanRef&gt; {
-        <span class="kw">let </span>read_ctx = ReadContext::default();
-        <span class="kw">let </span>regions = <span class="self">self</span>.regions.load();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>readers = Vec::with_capacity(regions.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>first_schema: <span class="prelude-ty">Option</span>&lt;Arc&lt;Schema&gt;&gt; = <span class="prelude-val">None</span>;
-
-        <span class="kw">let </span>table_info = <span class="self">self</span>.table_info.load();
-        <span class="comment">// TODO(hl): Currently the API between frontend and datanode is under refactoring in
-        // https://github.com/GreptimeTeam/greptimedb/issues/597 . Once it&#39;s finished, query plan
-        // can carry filtered region info to avoid scanning all regions on datanode.
-        </span><span class="kw">for </span>region <span class="kw">in </span>regions.values() {
-            <span class="kw">let </span>snapshot = region
-                .snapshot(<span class="kw-2">&amp;</span>read_ctx)
-                .map_err(BoxedError::new)
-                .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
-            <span class="kw">let </span>projection = <span class="self">self
-                </span>.transform_projection(region, projection.cloned())
-                .map_err(BoxedError::new)
-                .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
-            <span class="kw">let </span>filters = filters.into();
-            <span class="kw">let </span>scan_request = ScanRequest {
-                projection,
-                filters,
-                ..Default::default()
-            };
-            <span class="kw">let </span>reader = snapshot
-                .scan(<span class="kw-2">&amp;</span>read_ctx, scan_request)
-                .<span class="kw">await
-                </span>.map_err(BoxedError::new)
-                .context(table_error::TableOperationSnafu)<span class="question-mark">?
-                </span>.reader;
-
-            <span class="kw">let </span>schema = reader.user_schema().clone();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(first_schema) = <span class="kw-2">&amp;</span>first_schema {
-                <span class="comment">// TODO(hl): we assume all regions&#39; schemas are the same, but undergoing table altering
-                // may make these schemas inconsistent.
-                </span><span class="macro">ensure!</span>(
-                    first_schema.version() == schema.version(),
-                    RegionSchemaMismatchSnafu {
-                        table: common_catalog::format_full_table_name(
-                            <span class="kw-2">&amp;</span>table_info.catalog_name,
-                            <span class="kw-2">&amp;</span>table_info.schema_name,
-                            <span class="kw-2">&amp;</span>table_info.name
-                        )
-                    }
-                );
-            } <span class="kw">else </span>{
-                first_schema = <span class="prelude-val">Some</span>(schema);
-            }
-            readers.push(reader);
-        }
-
-        <span class="comment">// TODO(hl): we assume table contains at least one region, but with region migration this
-        // assumption may become invalid.
-        </span><span class="kw">let </span>stream_schema = first_schema.context(InvalidTableSnafu {
-            table_id: table_info.ident.table_id,
-        })<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>schema = stream_schema.clone();
-        <span class="kw">let </span>stream = Box::pin(<span class="macro">async_stream::try_stream! </span>{
-            <span class="kw">for </span><span class="kw-2">mut </span>reader <span class="kw">in </span>readers {
-                <span class="kw">while let </span><span class="prelude-val">Some</span>(chunk) = reader.next_chunk().<span class="kw">await</span>.map_err(BoxedError::new).context(ExternalSnafu)<span class="question-mark">? </span>{
-                    <span class="kw">let </span>chunk = reader.project_chunk(chunk);
-                    <span class="kw">yield </span>RecordBatch::new(stream_schema.clone(), chunk.columns)<span class="question-mark">?
-                </span>}
-            }
-        });
-
-        <span class="kw">let </span>stream = Box::pin(RecordBatchStreamAdaptor {
-            schema,
-            stream,
-            output_ordering: <span class="prelude-val">None</span>,
-        });
-        <span class="prelude-val">Ok</span>(Arc::new(StreamScanAdapter::new(stream)))
     }
 
     <span class="kw">async fn </span>scan_to_stream(<span class="kw-2">&amp;</span><span class="self">self</span>, request: ScanRequest) -&gt; TableResult&lt;SendableRecordBatchStream&gt; {
@@ -1121,7 +975,8 @@
             table_name,
             new_info
         );
-        <span class="self">self</span>.manifest
+        <span class="kw">let _ </span>= <span class="self">self
+            </span>.manifest
             .update(TableMetaActionList::with_action(TableMetaAction::Change(
                 Box::new(TableChange {
                     table_info: RawTableInfo::from(new_info.clone()),
@@ -1164,7 +1019,7 @@
                 .delete(key_column_values)
                 .map_err(BoxedError::new)
                 .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
-            region
+            <span class="kw">let _ </span>= region
                 .write(<span class="kw-2">&amp;</span>WriteContext::default(), write_request)
                 .<span class="kw">await
                 </span>.map_err(BoxedError::new)
@@ -1197,12 +1052,41 @@
                     .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
-            futures::future::try_join_all(regions.values().map(|region| region.flush(<span class="kw-2">&amp;</span>flush_ctx)))
-                .<span class="kw">await
-                </span>.map_err(BoxedError::new)
-                .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
+            <span class="kw">let _ </span>= futures::future::try_join_all(
+                regions.values().map(|region| region.flush(<span class="kw-2">&amp;</span>flush_ctx)),
+            )
+            .<span class="kw">await
+            </span>.map_err(BoxedError::new)
+            .context(TableOperationSnafu)<span class="question-mark">?</span>;
         }
 
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">async fn </span>compact(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        region_number: <span class="prelude-ty">Option</span>&lt;RegionNumber&gt;,
+        wait: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    ) -&gt; TableResult&lt;()&gt; {
+        <span class="kw">let </span>compact_ctx = wait.map(|wait| CompactContext { wait }).unwrap_or_default();
+        <span class="kw">let </span>regions = <span class="self">self</span>.regions.load();
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(region_number) = region_number {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(region) = regions.get(<span class="kw-2">&amp;</span>region_number) {
+                region
+                    .compact(<span class="kw-2">&amp;</span>compact_ctx)
+                    .<span class="kw">await
+                    </span>.map_err(BoxedError::new)
+                    .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">let _ </span>= futures::future::try_join_all(
+                regions.values().map(|region| region.compact(<span class="kw-2">&amp;</span>compact_ctx)),
+            )
+            .<span class="kw">await
+            </span>.map_err(BoxedError::new)
+            .context(TableOperationSnafu)<span class="question-mark">?</span>;
+        }
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1212,7 +1096,7 @@
         <span class="prelude-val">Ok</span>(regions
             .values()
             .map(|region| RegionStat {
-                region_id: region.id(),
+                region_id: region.id().into(),
                 disk_usage_bytes: region.disk_usage_bytes(),
             })
             .collect())
@@ -1393,12 +1277,12 @@
         region_numbers: <span class="kw-2">&amp;</span>[RegionNumber],
     ) -&gt; TableResult&lt;HashMap&lt;RegionNumber, R&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>removed = HashMap::with_capacity(region_numbers.len());
-        <span class="self">self</span>.regions.rcu(|regions| {
+        <span class="kw">let _ </span>= <span class="self">self</span>.regions.rcu(|regions| {
             removed.clear();
             <span class="kw">let </span><span class="kw-2">mut </span>regions = HashMap::clone(regions);
             <span class="kw">for </span>region_number <span class="kw">in </span>region_numbers {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(region) = regions.remove(region_number) {
-                    removed.insert(<span class="kw-2">*</span>region_number, region);
+                    <span class="kw">let _ </span>= removed.insert(<span class="kw-2">*</span>region_number, region);
                 }
             }
 
@@ -1406,16 +1290,6 @@
         });
 
         <span class="prelude-val">Ok</span>(removed)
-    }
-
-    <span class="kw">pub async fn </span>drop_regions(<span class="kw-2">&amp;</span><span class="self">self</span>, region_number: <span class="kw-2">&amp;</span>[RegionNumber]) -&gt; TableResult&lt;()&gt; {
-        <span class="kw">let </span>regions = <span class="self">self</span>.remove_regions(region_number).<span class="kw">await</span><span class="question-mark">?</span>;
-
-        futures::future::try_join_all(regions.values().map(|region| region.drop_region()))
-            .<span class="kw">await
-            </span>.map_err(BoxedError::new)
-            .context(table_error::TableOperationSnafu)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>is_releasable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1431,7 +1305,7 @@
     }
 
     <span class="kw">pub fn </span>set_table_info(<span class="kw-2">&amp;</span><span class="self">self</span>, table_info: TableInfo) {
-        <span class="self">self</span>.table_info.swap(Arc::new(table_info));
+        <span class="kw">let _ </span>= <span class="self">self</span>.table_info.swap(Arc::new(table_info));
     }
 
     <span class="attr">#[inline]
@@ -1485,9 +1359,9 @@
     </span><span class="kw">pub async fn </span>load_region(<span class="kw-2">&amp;</span><span class="self">self</span>, region_number: RegionNumber, region: R) -&gt; TableResult&lt;()&gt; {
         <span class="kw">let </span>info = <span class="self">self</span>.table_info.load();
 
-        <span class="self">self</span>.regions.rcu(|regions| {
+        <span class="kw">let _ </span>= <span class="self">self</span>.regions.rcu(|regions| {
             <span class="kw">let </span><span class="kw-2">mut </span>regions = HashMap::clone(regions);
-            regions
+            <span class="kw">let _ </span>= regions
                 .entry(region_number)
                 .or_insert_with(|| region.clone());
 

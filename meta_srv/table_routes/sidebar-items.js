@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["get_table_global_value","get_table_route_value","put_table_global_value","put_table_route_value"]};
+window.SIDEBAR_ITEMS = {"fn":["fetch_table","fetch_tables","get_table_route_value","put_table_route_value"]};

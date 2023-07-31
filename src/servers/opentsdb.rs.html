@@ -209,7 +209,7 @@
                         <span class="kw">let </span>connection = Connection::new(stream);
                         <span class="kw">let </span><span class="kw-2">mut </span>handler = Handler::new(query_handler, connection, shutdown);
 
-                        io_runtime.spawn(<span class="kw">async move </span>{
+                        <span class="kw">let </span>_handle = io_runtime.spawn(<span class="kw">async move </span>{
                             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = handler.run().<span class="kw">await </span>{
                                 <span class="macro">error!</span>(e; <span class="string">&quot;Unexpected error when handling OpenTSDB connection&quot;</span>);
                             }
@@ -240,7 +240,7 @@
         <span class="kw">let </span>(stream, addr) = <span class="self">self</span>.base_server.bind(listening).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let </span>io_runtime = <span class="self">self</span>.base_server.io_runtime();
-        <span class="kw">let </span>join_handle = tokio::spawn(<span class="self">self</span>.accept(io_runtime, stream));
+        <span class="kw">let </span>join_handle = common_runtime::spawn_read(<span class="self">self</span>.accept(io_runtime, stream));
         <span class="self">self</span>.base_server.start_with(join_handle).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(addr)
     }

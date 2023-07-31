@@ -565,10 +565,6 @@
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -708,7 +704,7 @@
             <span class="kw">if </span>ts &gt; max_ts {
                 <span class="kw-2">*</span>max_ts = ts.clone();
             }
-            map.insert(inner_key, row_value);
+            <span class="kw">let _ </span>= map.insert(inner_key, row_value);
         }
 
         <span class="self">self</span>.update_stats(kvs.estimated_memory_size(), min_ts, max_ts);
@@ -716,10 +712,10 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>IterContext) -&gt; <span class="prelude-ty">Result</span>&lt;BoxedBatchIterator&gt; {
+    <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: IterContext) -&gt; <span class="prelude-ty">Result</span>&lt;BoxedBatchIterator&gt; {
         <span class="macro">assert!</span>(ctx.batch_size &gt; <span class="number">0</span>);
 
-        <span class="kw">let </span>iter = BTreeIterator::new(ctx.clone(), <span class="self">self</span>.schema.clone(), <span class="self">self</span>.map.clone())<span class="question-mark">?</span>;
+        <span class="kw">let </span>iter = BTreeIterator::new(ctx, <span class="self">self</span>.schema.clone(), <span class="self">self</span>.map.clone())<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(Box::new(iter))
     }
@@ -809,12 +805,8 @@
             map.range(..)
         };
 
-        <span class="kw">let </span>(keys, sequences, op_types, values) = <span class="kw">if </span><span class="self">self</span>.ctx.for_flush {
-            collect_iter(iter, <span class="self">self</span>.ctx.batch_size)
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>iter = MapIterWrapper::new(iter, <span class="self">self</span>.ctx.visible_sequence, <span class="self">self</span>.ctx.time_range);
-            collect_iter(iter, <span class="self">self</span>.ctx.batch_size)
-        };
+        <span class="kw">let </span>iter = MapIterWrapper::new(iter, <span class="self">self</span>.ctx.visible_sequence, <span class="self">self</span>.ctx.time_range);
+        <span class="kw">let </span>(keys, sequences, op_types, values) = collect_iter(iter, <span class="self">self</span>.ctx.batch_size);
 
         <span class="kw">if </span>keys.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);

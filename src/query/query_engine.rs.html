@@ -127,6 +127,25 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -145,6 +164,7 @@
 <span class="kw">pub mod </span>options;
 <span class="kw">mod </span>state;
 
+<span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>async_trait::async_trait;
@@ -159,7 +179,9 @@
 <span class="kw">use </span>partition::manager::PartitionRuleManager;
 <span class="kw">use </span>session::context::QueryContextRef;
 <span class="kw">use </span>sql::statements::statement::Statement;
+<span class="kw">use </span>table::TableRef;
 
+<span class="kw">use </span><span class="kw">crate</span>::dataframe::DataFrame;
 <span class="kw">use </span><span class="kw">crate</span>::datafusion::DatafusionQueryEngine;
 <span class="kw">use </span><span class="kw">crate</span>::error::Result;
 <span class="kw">use </span><span class="kw">crate</span>::plan::LogicalPlan;
@@ -169,6 +191,15 @@
 
 <span class="kw">pub type </span>SqlStatementExecutorRef = Arc&lt;<span class="kw">dyn </span>SqlStatementExecutor&gt;;
 
+<span class="doccomment">/// Describe statement result
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>DescribeResult {
+    <span class="doccomment">/// The schema of statement
+    </span><span class="kw">pub </span>schema: Schema,
+    <span class="doccomment">/// The logical plan for statement
+    </span><span class="kw">pub </span>logical_plan: LogicalPlan,
+}
+
 <span class="attr">#[async_trait]
 </span><span class="kw">pub trait </span>SqlStatementExecutor: Send + Sync {
     <span class="kw">async fn </span>execute_sql(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: Statement, query_ctx: QueryContextRef) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt;;
@@ -176,11 +207,15 @@
 
 <span class="attr">#[async_trait]
 </span><span class="kw">pub trait </span>QueryEngine: Send + Sync {
+    <span class="doccomment">/// Returns the query engine as Any
+    /// so that it can be downcast to a specific implementation.
+    </span><span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any;
+
     <span class="kw">fn </span>planner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;<span class="kw">dyn </span>LogicalPlanner&gt;;
 
     <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
 
-    <span class="kw">async fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: LogicalPlan) -&gt; <span class="prelude-ty">Result</span>&lt;Schema&gt;;
+    <span class="kw">async fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: LogicalPlan) -&gt; <span class="prelude-ty">Result</span>&lt;DescribeResult&gt;;
 
     <span class="kw">async fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, plan: LogicalPlan, query_ctx: QueryContextRef) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt;;
 
@@ -189,6 +224,9 @@
     <span class="kw">fn </span>register_aggregate_function(<span class="kw-2">&amp;</span><span class="self">self</span>, func: AggregateFunctionMetaRef);
 
     <span class="kw">fn </span>register_function(<span class="kw-2">&amp;</span><span class="self">self</span>, func: FunctionRef);
+
+    <span class="doccomment">/// Create a DataFrame from a table.
+    </span><span class="kw">fn </span>read_table(<span class="kw-2">&amp;</span><span class="self">self</span>, table: TableRef) -&gt; <span class="prelude-ty">Result</span>&lt;DataFrame&gt;;
 }
 
 <span class="kw">pub struct </span>QueryEngineFactory {
@@ -218,9 +256,9 @@
             with_dist_planner,
             partition_manager,
             clients,
-            plugins,
+            plugins.clone(),
         ));
-        <span class="kw">let </span>query_engine = Arc::new(DatafusionQueryEngine::new(state));
+        <span class="kw">let </span>query_engine = Arc::new(DatafusionQueryEngine::new(state, plugins));
         register_functions(<span class="kw-2">&amp;</span>query_engine);
         <span class="self">Self </span>{ query_engine }
     }
@@ -248,7 +286,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_query_engine_factory() {
-        <span class="kw">let </span>catalog_list = catalog::local::new_memory_catalog_list().unwrap();
+        <span class="kw">let </span>catalog_list = catalog::local::new_memory_catalog_manager().unwrap();
         <span class="kw">let </span>factory = QueryEngineFactory::new(catalog_list, <span class="bool-val">false</span>);
 
         <span class="kw">let </span>engine = factory.query_engine();

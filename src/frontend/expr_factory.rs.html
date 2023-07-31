@@ -349,6 +349,7 @@
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -372,7 +373,7 @@
     AddColumn, AddColumns, AlterExpr, Column, ColumnDataType, CreateTableExpr, DropColumn,
     DropColumns, RenameTable,
 };
-<span class="kw">use </span>common_error::prelude::BoxedError;
+<span class="kw">use </span>common_error::ext::BoxedError;
 <span class="kw">use </span>datanode::instance::sql::table_idents_to_full_name;
 <span class="kw">use </span>datatypes::schema::ColumnSchema;
 <span class="kw">use </span>file_table_engine::table::immutable::ImmutableFileTableOptions;
@@ -450,7 +451,7 @@
         </span>.context(error::PrepareImmutableTableSnafu)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>meta = ImmutableFileTableOptions { files };
-    options.insert(
+    <span class="kw">let _ </span>= options.insert(
         IMMUTABLE_TABLE_META_KEY.to_string(),
         serde_json::to_string(<span class="kw-2">&amp;</span>meta).context(error::EncodeJsonSnafu)<span class="question-mark">?</span>,
     );
@@ -671,6 +672,7 @@
         schema_name,
         table_name,
         kind: <span class="prelude-val">Some</span>(kind),
+        ..Default::default()
     })
 }
 
@@ -692,7 +694,7 @@
             .unwrap();
 
         <span class="kw">let </span>Statement::CreateTable(create_table) = stmt <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
-        <span class="kw">let </span>expr = create_to_expr(<span class="kw-2">&amp;</span>create_table, Arc::new(QueryContext::default())).unwrap();
+        <span class="kw">let </span>expr = create_to_expr(<span class="kw-2">&amp;</span>create_table, QueryContext::arc()).unwrap();
         <span class="macro">assert_eq!</span>(<span class="string">&quot;3days&quot;</span>, expr.table_options.get(<span class="string">&quot;ttl&quot;</span>).unwrap());
         <span class="macro">assert_eq!</span>(
             <span class="string">&quot;1.0MiB&quot;</span>,

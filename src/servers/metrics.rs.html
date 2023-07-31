@@ -178,6 +178,21 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -198,7 +213,6 @@
 <span class="kw">use </span>common_telemetry::error;
 <span class="kw">use </span>hyper::Body;
 <span class="kw">use </span>metrics::gauge;
-<span class="kw">use </span>metrics_process::Collector;
 <span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>snafu::ResultExt;
 <span class="kw">use </span>tikv_jemalloc_ctl::stats::{allocated_mib, resident_mib};
@@ -212,16 +226,31 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_DB_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;db&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_CODE_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;code&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_TYPE_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;type&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_PROTOCOL_LABEL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;protocol&quot;</span>;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_ERROR_COUNTER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.error&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_ERROR_COUNTER_LABEL_MYSQL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;mysql&quot;</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_SQL_ELAPSED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.http_sql_elapsed&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMQL_ELAPSED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.http_promql_elapsed&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_AUTH_FAILURE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.auth_failure_count&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_INFLUXDB_WRITE_ELAPSED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.http_influxdb_write_elapsed&quot;</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMETHEUS_WRITE_ELAPSED: <span class="kw-2">&amp;</span>str =
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROM_STORE_WRITE_ELAPSED: <span class="kw-2">&amp;</span>str =
     <span class="string">&quot;servers.http_prometheus_write_elapsed&quot;</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMETHEUS_READ_ELAPSED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.http_prometheus_read_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROM_STORE_READ_ELAPSED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.http_prometheus_read_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_OPENTELEMETRY_ELAPSED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.http_otlp_elapsed&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_TCP_OPENTSDB_LINE_WRITE_ELAPSED: <span class="kw-2">&amp;</span>str =
     <span class="string">&quot;servers.opentsdb_line_write_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMQL_INSTANT_QUERY_ELAPSED: <span class="kw-2">&amp;</span>str =
+    <span class="string">&quot;servers.http_promql_instant_query_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMQL_RANGE_QUERY_ELAPSED: <span class="kw-2">&amp;</span>str =
+    <span class="string">&quot;servers.http_promql_range_query_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMQL_LABEL_QUERY_ELAPSED: <span class="kw-2">&amp;</span>str =
+    <span class="string">&quot;servers.http_promql_label_query_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMQL_SERIES_QUERY_ELAPSED: <span class="kw-2">&amp;</span>str =
+    <span class="string">&quot;servers.http_promql_series_query_elapsed&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_HTTP_PROMQL_LABEL_VALUE_QUERY_ELAPSED: <span class="kw-2">&amp;</span>str =
+    <span class="string">&quot;servers.http_promql_label_value_query_elapsed&quot;</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_MYSQL_CONNECTIONS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.mysql_connection_count&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_MYSQL_QUERY_TIMER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;servers.mysql_query_elapsed&quot;</span>;
@@ -251,8 +280,9 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METRIC_JEMALLOC_ALLOCATED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;sys.jemalloc.allocated&quot;</span>;
 
 <span class="doccomment">/// Prometheus style process metrics collector.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>PROCESS_COLLECTOR: Lazy&lt;Collector&gt; = Lazy::new(|| {
-    <span class="kw">let </span>collector = Collector::default();
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;metrics-process&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>PROCESS_COLLECTOR: Lazy&lt;metrics_process::Collector&gt; = Lazy::new(|| {
+    <span class="kw">let </span>collector = metrics_process::Collector::default();
     <span class="comment">// Describe collector.
     </span>collector.describe();
     collector
@@ -292,7 +322,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; error::Result&lt;()&gt; {
-        <span class="self">self</span>.epoch.advance().context(UpdateJemallocMetricsSnafu)<span class="question-mark">?</span>;
+        <span class="kw">let _ </span>= <span class="self">self</span>.epoch.advance().context(UpdateJemallocMetricsSnafu)<span class="question-mark">?</span>;
         <span class="kw">let </span>allocated = <span class="self">self</span>.allocated.read().context(UpdateJemallocMetricsSnafu)<span class="question-mark">?</span>;
         <span class="kw">let </span>resident = <span class="self">self</span>.resident.read().context(UpdateJemallocMetricsSnafu)<span class="question-mark">?</span>;
         <span class="macro">gauge!</span>(METRIC_JEMALLOC_ALLOCATED, allocated <span class="kw">as </span>f64);

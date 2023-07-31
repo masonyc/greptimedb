@@ -67,20 +67,6 @@
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -96,12 +82,10 @@
 // limitations under the License.
 
 </span><span class="kw">use </span>std::fmt::{Debug, Formatter};
-<span class="kw">use </span>std::sync::{Arc, Mutex};
 <span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>common_grpc::channel_manager::{ChannelConfig, ChannelManager};
 <span class="kw">use </span>common_meta::peer::Peer;
-<span class="kw">use </span>common_telemetry::info;
 <span class="kw">use </span>moka::future::{Cache, CacheBuilder};
 
 <span class="kw">use </span><span class="kw">crate</span>::Client;
@@ -109,21 +93,11 @@
 <span class="kw">pub struct </span>DatanodeClients {
     channel_manager: ChannelManager,
     clients: Cache&lt;Peer, Client&gt;,
-    started: Arc&lt;Mutex&lt;bool&gt;&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>DatanodeClients {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>config = ChannelConfig::new().timeout(Duration::from_secs(<span class="number">8</span>));
-
-        <span class="self">Self </span>{
-            channel_manager: ChannelManager::with_config(config),
-            clients: CacheBuilder::new(<span class="number">1024</span>)
-                .time_to_live(Duration::from_secs(<span class="number">30 </span>* <span class="number">60</span>))
-                .time_to_idle(Duration::from_secs(<span class="number">5 </span>* <span class="number">60</span>))
-                .build(),
-            started: Arc::new(Mutex::new(<span class="bool-val">false</span>)),
-        }
+        <span class="self">Self</span>::new(ChannelConfig::new())
     }
 }
 
@@ -136,16 +110,14 @@
 }
 
 <span class="kw">impl </span>DatanodeClients {
-    <span class="kw">pub fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>started = <span class="self">self</span>.started.lock().unwrap();
-        <span class="kw">if </span><span class="kw-2">*</span>started {
-            <span class="kw">return</span>;
+    <span class="kw">pub fn </span>new(config: ChannelConfig) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            channel_manager: ChannelManager::with_config(config),
+            clients: CacheBuilder::new(<span class="number">1024</span>)
+                .time_to_live(Duration::from_secs(<span class="number">30 </span>* <span class="number">60</span>))
+                .time_to_idle(Duration::from_secs(<span class="number">5 </span>* <span class="number">60</span>))
+                .build(),
         }
-
-        <span class="self">self</span>.channel_manager.start_channel_recycle();
-
-        <span class="macro">info!</span>(<span class="string">&quot;Datanode clients manager is started!&quot;</span>);
-        <span class="kw-2">*</span>started = <span class="bool-val">true</span>;
     }
 
     <span class="kw">pub async fn </span>get_client(<span class="kw-2">&amp;</span><span class="self">self</span>, datanode: <span class="kw-2">&amp;</span>Peer) -&gt; Client {

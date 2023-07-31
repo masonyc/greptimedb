@@ -276,6 +276,7 @@
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
 <a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -297,7 +298,9 @@
 <span class="kw">use </span>catalog::remote::CachedMetaKvBackend;
 <span class="kw">use </span>client::client_manager::DatanodeClients;
 <span class="kw">use </span>client::{Client, Database, DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME};
-<span class="kw">use </span>common_error::prelude::ErrorExt;
+<span class="kw">use </span>common_base::Plugins;
+<span class="kw">use </span>common_error::ext::ErrorExt;
+<span class="kw">use </span>common_meta::key::TableMetadataManager;
 <span class="kw">use </span>common_query::Output;
 <span class="kw">use </span>common_recordbatch::RecordBatches;
 <span class="kw">use </span>common_telemetry::logging;
@@ -385,7 +388,7 @@
             <span class="prelude-val">Ok</span>(<span class="kw-2">ref </span>line) =&gt; {
                 <span class="kw">let </span>request = line.trim();
 
-                <span class="self">self</span>.rl.add_history_entry(request.to_string());
+                <span class="kw">let _ </span>= <span class="self">self</span>.rl.add_history_entry(request.to_string());
 
                 request.try_into()
             }
@@ -414,7 +417,7 @@
                     }
                 }
                 ReplCommand::Sql { sql } =&gt; {
-                    <span class="self">self</span>.execute_sql(sql).<span class="kw">await</span>;
+                    <span class="kw">let _ </span>= <span class="self">self</span>.execute_sql(sql).<span class="kw">await</span>;
                 }
                 ReplCommand::Exit =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -441,10 +444,7 @@
             <span class="kw">let </span>stmt = QueryLanguageParser::parse_sql(<span class="kw-2">&amp;</span>sql)
                 .with_context(|<span class="kw">_</span>| ParseSqlSnafu { sql: sql.clone() })<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>query_ctx = Arc::new(QueryContext::with(
-                <span class="self">self</span>.database.catalog(),
-                <span class="self">self</span>.database.schema(),
-            ));
+            <span class="kw">let </span>query_ctx = QueryContext::with(<span class="self">self</span>.database.catalog(), <span class="self">self</span>.database.schema());
 
             <span class="kw">let </span>plan = query_engine
                 .planner()
@@ -459,7 +459,7 @@
                 .encode(plan)
                 .context(SubstraitEncodeLogicalPlanSnafu)<span class="question-mark">?</span>;
 
-            <span class="self">self</span>.database.logical_plan(plan.to_vec()).<span class="kw">await
+            <span class="self">self</span>.database.logical_plan(plan.to_vec(), <span class="prelude-val">None</span>).<span class="kw">await
         </span>} <span class="kw">else </span>{
             <span class="self">self</span>.database.sql(<span class="kw-2">&amp;</span>sql).<span class="kw">await
         </span>}
@@ -540,18 +540,20 @@
 
     <span class="kw">let </span>catalog_list = Arc::new(FrontendCatalogManager::new(
         cached_meta_backend.clone(),
-        cached_meta_backend,
+        cached_meta_backend.clone(),
         partition_manager,
         datanode_clients,
+        Arc::new(TableMetadataManager::new(cached_meta_backend)),
     ));
+    <span class="kw">let </span>plugins: Arc&lt;Plugins&gt; = Default::default();
     <span class="kw">let </span>state = Arc::new(QueryEngineState::new(
         catalog_list,
         <span class="bool-val">false</span>,
         <span class="prelude-val">None</span>,
         <span class="prelude-val">None</span>,
-        Default::default(),
+        plugins.clone(),
     ));
 
-    <span class="prelude-val">Ok</span>(DatafusionQueryEngine::new(state))
+    <span class="prelude-val">Ok</span>(DatafusionQueryEngine::new(state, plugins))
 }
 </code></pre></div></section></main></body></html>

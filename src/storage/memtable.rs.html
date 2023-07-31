@@ -292,14 +292,6 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -375,11 +367,9 @@
     </span><span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, kvs: <span class="kw-2">&amp;</span>KeyValues) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 
     <span class="doccomment">/// Iterates the memtable.
-    </span><span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>IterContext) -&gt; <span class="prelude-ty">Result</span>&lt;BoxedBatchIterator&gt;;
+    </span><span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: IterContext) -&gt; <span class="prelude-ty">Result</span>&lt;BoxedBatchIterator&gt;;
 
-    <span class="doccomment">/// Returns the estimated bytes allocated by this memtable from heap. Result
-    /// of this method may be larger than the estimated based on [`num_rows`] because
-    /// of the implementor&#39;s pre-alloc behavior.
+    <span class="doccomment">/// Returns the number of rows in the memtable.
     </span><span class="kw">fn </span>num_rows(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
 
     <span class="doccomment">/// Returns stats of this memtable.
@@ -403,11 +393,6 @@
     <span class="doccomment">/// Max visible sequence (inclusive).
     </span><span class="kw">pub </span>visible_sequence: SequenceNumber,
 
-    <span class="comment">// TODO(yingwen): [flush] Maybe delay deduping and visiblility handling, just returns all rows
-    // in memtable.
-    </span><span class="doccomment">/// Returns all rows, ignores sequence visibility and key duplication.
-    </span><span class="kw">pub </span>for_flush: bool,
-
     <span class="doccomment">/// Schema the reader expect to read.
     ///
     /// Set to `None` to read all columns.
@@ -423,7 +408,6 @@
             batch_size: consts::READ_BATCH_SIZE,
             <span class="comment">// All data in memory is visible by default.
             </span>visible_sequence: SequenceNumber::MAX,
-            for_flush: <span class="bool-val">false</span>,
             projected_schema: <span class="prelude-val">None</span>,
             time_range: <span class="prelude-val">None</span>,
         }
@@ -531,7 +515,7 @@
 
     <span class="doccomment">/// Tracks `bytes` memory is allocated.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_allocate(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: usize) {
-        <span class="self">self</span>.bytes_allocated.fetch_add(bytes, Ordering::Relaxed);
+        <span class="kw">let _ </span>= <span class="self">self</span>.bytes_allocated.fetch_add(bytes, Ordering::Relaxed);
         <span class="macro">increment_gauge!</span>(WRITE_BUFFER_BYTES, bytes <span class="kw">as </span>f64);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(flush_strategy) = <span class="kw-2">&amp;</span><span class="self">self</span>.flush_strategy {
             flush_strategy.reserve_mem(bytes);

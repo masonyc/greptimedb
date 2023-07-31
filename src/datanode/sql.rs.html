@@ -132,6 +132,12 @@
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -147,7 +153,7 @@
 // limitations under the License.
 
 </span><span class="kw">use </span>catalog::CatalogManagerRef;
-<span class="kw">use </span>common_error::prelude::BoxedError;
+<span class="kw">use </span>common_error::ext::BoxedError;
 <span class="kw">use </span>common_procedure::ProcedureManagerRef;
 <span class="kw">use </span>common_query::Output;
 <span class="kw">use </span>common_telemetry::error;
@@ -165,11 +171,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::instance::sql::table_idents_to_full_name;
 
 <span class="kw">mod </span>alter;
+<span class="kw">mod </span>compact_table;
 <span class="kw">mod </span>create;
 <span class="kw">mod </span>create_external;
 <span class="kw">mod </span>drop_table;
 <span class="kw">mod </span>flush_table;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>insert;
+<span class="kw">mod </span>truncate_table;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>SqlRequest {
@@ -178,6 +186,8 @@
     Alter(AlterTableRequest),
     DropTable(DropTableRequest),
     FlushTable(FlushTableRequest),
+    CompactTable(CompactTableRequest),
+    TruncateTable(TruncateTableRequest),
 }
 
 <span class="comment">// Handler to execute SQL except query
@@ -208,6 +218,8 @@
             SqlRequest::Alter(req) =&gt; <span class="self">self</span>.alter_table(req).<span class="kw">await</span>,
             SqlRequest::DropTable(req) =&gt; <span class="self">self</span>.drop_table(req).<span class="kw">await</span>,
             SqlRequest::FlushTable(req) =&gt; <span class="self">self</span>.flush_table(req).<span class="kw">await</span>,
+            SqlRequest::CompactTable(req) =&gt; <span class="self">self</span>.compact_table(req).<span class="kw">await</span>,
+            SqlRequest::TruncateTable(req) =&gt; <span class="self">self</span>.truncate_table(req).<span class="kw">await</span>,
         };
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="kw-2">&amp;</span>result {
             <span class="macro">error!</span>(e; <span class="string">&quot;{query_ctx}&quot;</span>);

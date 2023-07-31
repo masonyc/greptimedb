@@ -266,6 +266,10 @@
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -280,54 +284,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-</span><span class="kw">use </span>api::v1::meta::{PutRequest, TableRouteValue};
-<span class="kw">use </span>catalog::helper::{TableGlobalKey, TableGlobalValue};
-<span class="kw">use </span>common_meta::key::TableRouteKey;
+</span><span class="kw">use </span>api::v1::meta::TableRouteValue;
+<span class="kw">use </span>common_meta::key::table_info::TableInfoValue;
+<span class="kw">use </span>common_meta::key::{TableMetadataManagerRef, TableRouteKey};
+<span class="kw">use </span>common_meta::rpc::store::PutRequest;
 <span class="kw">use </span>snafu::{OptionExt, ResultExt};
+<span class="kw">use </span>table::metadata::TableId;
 
 <span class="kw">use </span><span class="kw">crate</span>::error::{
-    DecodeTableRouteSnafu, InvalidCatalogValueSnafu, <span class="prelude-ty">Result</span>, TableRouteNotFoundSnafu,
+    DecodeTableRouteSnafu, <span class="prelude-ty">Result</span>, TableMetadataManagerSnafu, TableRouteNotFoundSnafu,
 };
-<span class="kw">use </span><span class="kw">crate</span>::service::store::ext::KvStoreExt;
+<span class="kw">use </span><span class="kw">crate</span>::metasrv::Context;
 <span class="kw">use </span><span class="kw">crate</span>::service::store::kv::KvStoreRef;
-
-<span class="kw">pub async fn </span>get_table_global_value(
-    kv_store: <span class="kw-2">&amp;</span>KvStoreRef,
-    key: <span class="kw-2">&amp;</span>TableGlobalKey,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;TableGlobalValue&gt;&gt; {
-    <span class="kw">let </span>key = key.to_string().into_bytes();
-    <span class="kw">let </span>kv = kv_store.get(key).<span class="kw">await</span><span class="question-mark">?</span>;
-    kv.map(|kv| TableGlobalValue::from_bytes(kv.value).context(InvalidCatalogValueSnafu))
-        .transpose()
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>put_table_global_value(
-    kv_store: <span class="kw-2">&amp;</span>KvStoreRef,
-    key: <span class="kw-2">&amp;</span>TableGlobalKey,
-    value: <span class="kw-2">&amp;</span>TableGlobalValue,
-) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>req = PutRequest {
-        header: <span class="prelude-val">None</span>,
-        key: key.to_string().into_bytes(),
-        value: value.as_bytes().context(InvalidCatalogValueSnafu)<span class="question-mark">?</span>,
-        prev_kv: <span class="bool-val">false</span>,
-    };
-    <span class="kw">let _ </span>= kv_store.put(req).<span class="kw">await</span>;
-    <span class="prelude-val">Ok</span>(())
-}
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>get_table_route_value(
     kv_store: <span class="kw-2">&amp;</span>KvStoreRef,
     key: <span class="kw-2">&amp;</span>TableRouteKey&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TableRouteValue&gt; {
     <span class="kw">let </span>kv = kv_store
-        .get(key.key().into_bytes())
+        .get(key.to_string().as_bytes())
         .<span class="kw">await</span><span class="question-mark">?
-        </span>.with_context(|| TableRouteNotFoundSnafu { key: key.key() })<span class="question-mark">?</span>;
-    kv.value
-        .as_slice()
-        .try_into()
-        .context(DecodeTableRouteSnafu)
+        </span>.with_context(|| TableRouteNotFoundSnafu {
+            key: key.to_string(),
+        })<span class="question-mark">?</span>;
+    kv.value().try_into().context(DecodeTableRouteSnafu)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>put_table_route_value(
@@ -336,8 +316,7 @@
     value: TableRouteValue,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>req = PutRequest {
-        header: <span class="prelude-val">None</span>,
-        key: key.key().into_bytes(),
+        key: key.to_string().into_bytes(),
         value: value.into(),
         prev_kv: <span class="bool-val">false</span>,
     };
@@ -345,14 +324,61 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>fetch_table(
+    kv_store: <span class="kw-2">&amp;</span>KvStoreRef,
+    table_metadata_manager: <span class="kw-2">&amp;</span>TableMetadataManagerRef,
+    table_id: TableId,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(TableInfoValue, TableRouteValue)&gt;&gt; {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(table_info_value) = table_metadata_manager
+        .table_info_manager()
+        .get(table_id)
+        .<span class="kw">await
+        </span>.context(TableMetadataManagerSnafu)<span class="question-mark">? </span><span class="kw">else </span>{
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    };
+
+    <span class="kw">let </span>table_info = <span class="kw-2">&amp;</span>table_info_value.table_info;
+    <span class="kw">let </span>trk = TableRouteKey {
+        table_id,
+        catalog_name: <span class="kw-2">&amp;</span>table_info.catalog_name,
+        schema_name: <span class="kw-2">&amp;</span>table_info.schema_name,
+        table_name: <span class="kw-2">&amp;</span>table_info.name,
+    };
+    <span class="kw">let </span>table_route_value = get_table_route_value(kv_store, <span class="kw-2">&amp;</span>trk).<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((table_info_value, table_route_value)))
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>fetch_tables(
+    ctx: <span class="kw-2">&amp;</span>Context,
+    table_ids: Vec&lt;TableId&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(TableInfoValue, TableRouteValue)&gt;&gt; {
+    <span class="kw">let </span>kv_store = <span class="kw-2">&amp;</span>ctx.kv_store;
+    <span class="kw">let </span>table_metadata_manager = <span class="kw-2">&amp;</span>ctx.table_metadata_manager;
+
+    <span class="kw">let </span><span class="kw-2">mut </span>tables = <span class="macro">vec!</span>[];
+    <span class="comment">// Maybe we can optimize the for loop in the future, but in general,
+    // there won&#39;t be many keys, in fact, there is usually just one.
+    </span><span class="kw">for </span>table_id <span class="kw">in </span>table_ids {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = fetch_table(kv_store, table_metadata_manager, table_id).<span class="kw">await</span><span class="question-mark">? </span>{
+            tables.push(x);
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(tables)
+}
+
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tests {
     <span class="kw">use </span>std::collections::HashMap;
     <span class="kw">use </span>std::sync::Arc;
 
-    <span class="kw">use </span>api::v1::meta::{Peer, Region, RegionRoute, Table, TableName, TableRoute};
+    <span class="kw">use </span>api::v1::meta::{Peer, Region, RegionRoute, Table, TableRoute};
     <span class="kw">use </span>chrono::DateTime;
     <span class="kw">use </span>common_catalog::consts::{DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME, MITO_ENGINE};
+    <span class="kw">use </span>common_meta::key::table_region::RegionDistribution;
+    <span class="kw">use </span>common_meta::key::TableMetadataManagerRef;
+    <span class="kw">use </span>common_meta::table_name::TableName;
     <span class="kw">use </span>datatypes::data_type::ConcreteDataType;
     <span class="kw">use </span>datatypes::schema::{ColumnSchema, RawSchema};
     <span class="kw">use </span>table::metadata::{RawTableInfo, RawTableMeta, TableIdent, TableType};
@@ -362,53 +388,59 @@
     <span class="kw">use </span><span class="kw">crate</span>::error;
     <span class="kw">use </span><span class="kw">crate</span>::service::store::memory::MemStore;
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>prepare_table_global_value(
-        kv_store: <span class="kw-2">&amp;</span>KvStoreRef,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>prepare_table_region_and_info_value(
+        table_metadata_manager: <span class="kw-2">&amp;</span>TableMetadataManagerRef,
         table: <span class="kw-2">&amp;</span>str,
-    ) -&gt; (TableGlobalKey, TableGlobalValue) {
+    ) {
+        <span class="kw">let </span>table_info = RawTableInfo {
+            ident: TableIdent::new(<span class="number">1</span>),
+            name: table.to_string(),
+            desc: <span class="prelude-val">None</span>,
+            catalog_name: DEFAULT_CATALOG_NAME.to_string(),
+            schema_name: DEFAULT_SCHEMA_NAME.to_string(),
+            meta: RawTableMeta {
+                schema: RawSchema::new(<span class="macro">vec!</span>[ColumnSchema::new(
+                    <span class="string">&quot;a&quot;</span>,
+                    ConcreteDataType::string_datatype(),
+                    <span class="bool-val">true</span>,
+                )]),
+                primary_key_indices: <span class="macro">vec!</span>[],
+                value_indices: <span class="macro">vec!</span>[],
+                engine: MITO_ENGINE.to_string(),
+                next_column_id: <span class="number">1</span>,
+                region_numbers: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>],
+                engine_options: HashMap::new(),
+                options: TableOptions::default(),
+                created_on: DateTime::default(),
+            },
+            table_type: TableType::Base,
+        };
+        table_metadata_manager
+            .table_info_manager()
+            .create(<span class="number">1</span>, <span class="kw-2">&amp;</span>table_info)
+            .<span class="kw">await
+            </span>.unwrap();
+
         <span class="comment">// Region distribution:
         // Datanode =&gt; Regions
         // 1 =&gt; 1, 2
         // 2 =&gt; 3
         // 3 =&gt; 4
-        </span><span class="kw">let </span>regions_id_map = HashMap::from([(<span class="number">1</span>, <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>]), (<span class="number">2</span>, <span class="macro">vec!</span>[<span class="number">3</span>]), (<span class="number">3</span>, <span class="macro">vec!</span>[<span class="number">4</span>])]);
-
-        <span class="kw">let </span>key = TableGlobalKey {
-            catalog_name: DEFAULT_CATALOG_NAME.to_string(),
-            schema_name: DEFAULT_SCHEMA_NAME.to_string(),
-            table_name: table.to_string(),
-        };
-        <span class="kw">let </span>value = TableGlobalValue {
-            node_id: <span class="number">1</span>,
-            regions_id_map,
-            table_info: RawTableInfo {
-                ident: TableIdent::new(<span class="number">1</span>),
-                name: table.to_string(),
-                desc: <span class="prelude-val">None</span>,
-                catalog_name: DEFAULT_CATALOG_NAME.to_string(),
-                schema_name: DEFAULT_SCHEMA_NAME.to_string(),
-                meta: RawTableMeta {
-                    schema: RawSchema::new(<span class="macro">vec!</span>[ColumnSchema::new(
-                        <span class="string">&quot;a&quot;</span>,
-                        ConcreteDataType::string_datatype(),
-                        <span class="bool-val">true</span>,
-                    )]),
-                    primary_key_indices: <span class="macro">vec!</span>[],
-                    value_indices: <span class="macro">vec!</span>[],
-                    engine: MITO_ENGINE.to_string(),
-                    next_column_id: <span class="number">1</span>,
-                    region_numbers: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>],
-                    engine_options: HashMap::new(),
-                    options: TableOptions::default(),
-                    created_on: DateTime::default(),
-                },
-                table_type: TableType::Base,
-            },
-        };
-        put_table_global_value(kv_store, <span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>value)
+        </span><span class="kw">let </span>region_distribution =
+            RegionDistribution::from([(<span class="number">1</span>, <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>]), (<span class="number">2</span>, <span class="macro">vec!</span>[<span class="number">3</span>]), (<span class="number">3</span>, <span class="macro">vec!</span>[<span class="number">4</span>])]);
+        table_metadata_manager
+            .table_region_manager()
+            .create(<span class="number">1</span>, <span class="kw-2">&amp;</span>region_distribution)
             .<span class="kw">await
             </span>.unwrap();
-        (key, value)
+
+        <span class="kw">for </span>(datanode_id, regions) <span class="kw">in </span>region_distribution {
+            table_metadata_manager
+                .datanode_table_manager()
+                .create(datanode_id, <span class="number">1</span>, regions)
+                .<span class="kw">await
+                </span>.unwrap();
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>prepare_table_route_value&lt;<span class="lifetime">&#39;a</span>&gt;(
@@ -444,11 +476,9 @@
         <span class="kw">let </span>table_route = TableRoute {
             table: <span class="prelude-val">Some</span>(Table {
                 id: <span class="number">1</span>,
-                table_name: <span class="prelude-val">Some</span>(TableName {
-                    catalog_name: DEFAULT_CATALOG_NAME.to_string(),
-                    schema_name: DEFAULT_SCHEMA_NAME.to_string(),
-                    table_name: table.to_string(),
-                }),
+                table_name: <span class="prelude-val">Some</span>(
+                    TableName::new(DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME, table).into(),
+                ),
                 table_schema: <span class="macro">vec!</span>[],
             }),
             region_routes,
@@ -490,28 +520,6 @@
             leader_peer_index,
             follower_peer_indexes: <span class="macro">vec!</span>[],
         }
-    }
-
-    <span class="attr">#[tokio::test]
-    </span><span class="kw">async fn </span>test_put_and_get_table_global_value() {
-        <span class="kw">let </span>kv_store = Arc::new(MemStore::new()) <span class="kw">as _</span>;
-
-        <span class="kw">let </span>key = TableGlobalKey {
-            catalog_name: <span class="string">&quot;not_exist_catalog&quot;</span>.to_string(),
-            schema_name: <span class="string">&quot;not_exist_schema&quot;</span>.to_string(),
-            table_name: <span class="string">&quot;not_exist_table&quot;</span>.to_string(),
-        };
-        <span class="macro">assert!</span>(get_table_global_value(<span class="kw-2">&amp;</span>kv_store, <span class="kw-2">&amp;</span>key)
-            .<span class="kw">await
-            </span>.unwrap()
-            .is_none());
-
-        <span class="kw">let </span>(key, value) = prepare_table_global_value(<span class="kw-2">&amp;</span>kv_store, <span class="string">&quot;my_table&quot;</span>).<span class="kw">await</span>;
-        <span class="kw">let </span>actual = get_table_global_value(<span class="kw-2">&amp;</span>kv_store, <span class="kw-2">&amp;</span>key)
-            .<span class="kw">await
-            </span>.unwrap()
-            .unwrap();
-        <span class="macro">assert_eq!</span>(actual, value);
     }
 
     <span class="attr">#[tokio::test]

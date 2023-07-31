@@ -1284,7 +1284,7 @@
         <span class="comment">// Add the id of the subprocedure to the metadata.
         </span><span class="self">self</span>.meta.push_child(procedure_id);
 
-        common_runtime::spawn_bg(<span class="kw">async move </span>{
+        <span class="kw">let </span>_handle = common_runtime::spawn_bg(<span class="kw">async move </span>{
             <span class="comment">// Run the root procedure.
             </span>runner.run().<span class="kw">await
         </span>});
@@ -1407,7 +1407,7 @@
     <span class="kw">use </span>async_trait::async_trait;
     <span class="kw">use </span>common_error::ext::PlainError;
     <span class="kw">use </span>common_error::mock::MockError;
-    <span class="kw">use </span>common_error::prelude::StatusCode;
+    <span class="kw">use </span>common_error::status_code::StatusCode;
     <span class="kw">use </span>common_test_util::temp_dir::create_temp_dir;
     <span class="kw">use </span>futures_util::future::BoxFuture;
     <span class="kw">use </span>futures_util::{FutureExt, TryStreamExt};
