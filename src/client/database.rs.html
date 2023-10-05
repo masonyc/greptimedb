@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/client/src/database.rs`."><title>database.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="client" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../client/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/client/src/database.rs`."><title>database.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="client" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../client/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -377,93 +377,6 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -483,20 +396,23 @@
 <span class="kw">use </span>api::v1::greptime_request::Request;
 <span class="kw">use </span>api::v1::query_request::Query;
 <span class="kw">use </span>api::v1::{
-    AlterExpr, AuthHeader, CompactTableExpr, CreateTableExpr, DdlRequest, DeleteRequest,
-    DropTableExpr, FlushTableExpr, GreptimeRequest, InsertRequests, PromRangeQuery, QueryRequest,
-    RequestHeader, TruncateTableExpr,
+    AlterExpr, AuthHeader, CreateTableExpr, DdlRequest, DeleteRequests, DropTableExpr,
+    GreptimeRequest, InsertRequests, PromRangeQuery, QueryRequest, RequestHeader,
+    RowInsertRequests, TruncateTableExpr,
 };
-<span class="kw">use </span>arrow_flight::{FlightData, Ticket};
+<span class="kw">use </span>arrow_flight::Ticket;
+<span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>common_error::ext::{BoxedError, ErrorExt};
-<span class="kw">use </span>common_grpc::flight::{flight_messages_to_recordbatches, FlightDecoder, FlightMessage};
+<span class="kw">use </span>common_grpc::flight::{FlightDecoder, FlightMessage};
 <span class="kw">use </span>common_query::Output;
+<span class="kw">use </span>common_recordbatch::error::ExternalSnafu;
+<span class="kw">use </span>common_recordbatch::RecordBatchStreamAdaptor;
 <span class="kw">use </span>common_telemetry::{logging, timer};
-<span class="kw">use </span>futures_util::{TryFutureExt, TryStreamExt};
+<span class="kw">use </span>futures_util::StreamExt;
 <span class="kw">use </span>prost::Message;
 <span class="kw">use </span>snafu::{ensure, ResultExt};
 
-<span class="kw">use </span><span class="kw">crate</span>::error::{ConvertFlightDataSnafu, IllegalFlightMessagesSnafu, ServerSnafu};
+<span class="kw">use </span><span class="kw">crate</span>::error::{ConvertFlightDataSnafu, Error, IllegalFlightMessagesSnafu, ServerSnafu};
 <span class="kw">use crate</span>::{error, from_grpc_response, metrics, Client, <span class="prelude-ty">Result</span>, StreamInserter};
 
 <span class="attr">#[derive(Clone, Debug, Default)]
@@ -578,6 +494,11 @@
         <span class="self">self</span>.handle(Request::Inserts(requests)).<span class="kw">await
     </span>}
 
+    <span class="kw">pub async fn </span>row_insert(<span class="kw-2">&amp;</span><span class="self">self</span>, requests: RowInsertRequests) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
+        <span class="kw">let </span>_timer = <span class="macro">timer!</span>(metrics::METRIC_GRPC_INSERT);
+        <span class="self">self</span>.handle(Request::RowInserts(requests)).<span class="kw">await
+    </span>}
+
     <span class="kw">pub fn </span>streaming_inserter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;StreamInserter&gt; {
         <span class="self">self</span>.streaming_inserter_with_channel_size(<span class="number">65536</span>)
     }
@@ -598,20 +519,20 @@
         <span class="prelude-val">Ok</span>(stream_inserter)
     }
 
-    <span class="kw">pub async fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, request: DeleteRequest) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
+    <span class="kw">pub async fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, request: DeleteRequests) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
         <span class="kw">let </span>_timer = <span class="macro">timer!</span>(metrics::METRIC_GRPC_DELETE);
-        <span class="self">self</span>.handle(Request::Delete(request)).<span class="kw">await
+        <span class="self">self</span>.handle(Request::Deletes(request)).<span class="kw">await
     </span>}
 
     <span class="kw">async fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>, request: Request) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>client = <span class="self">self</span>.client.make_database_client()<span class="question-mark">?</span>.inner;
-        <span class="kw">let </span>request = <span class="self">self</span>.to_rpc_request(request, <span class="prelude-val">None</span>);
+        <span class="kw">let </span>request = <span class="self">self</span>.to_rpc_request(request, <span class="number">0</span>);
         <span class="kw">let </span>response = client.handle(request).<span class="kw">await</span><span class="question-mark">?</span>.into_inner();
         from_grpc_response(response)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>to_rpc_request(<span class="kw-2">&amp;</span><span class="self">self</span>, request: Request, trace_id: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; GreptimeRequest {
+    </span><span class="kw">fn </span>to_rpc_request(<span class="kw-2">&amp;</span><span class="self">self</span>, request: Request, trace_id: u64) -&gt; GreptimeRequest {
         GreptimeRequest {
             header: <span class="prelude-val">Some</span>(RequestHeader {
                 catalog: <span class="self">self</span>.catalog.clone(),
@@ -619,7 +540,7 @@
                 authorization: <span class="self">self</span>.ctx.auth_header.clone(),
                 dbname: <span class="self">self</span>.dbname.clone(),
                 trace_id,
-                span_id: <span class="prelude-val">None</span>,
+                span_id: <span class="number">0</span>,
             }),
             request: <span class="prelude-val">Some</span>(request),
         }
@@ -631,16 +552,12 @@
             Request::Query(QueryRequest {
                 query: <span class="prelude-val">Some</span>(Query::Sql(sql.to_string())),
             }),
-            <span class="prelude-val">None</span>,
+            <span class="number">0</span>,
         )
         .<span class="kw">await
     </span>}
 
-    <span class="kw">pub async fn </span>logical_plan(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        logical_plan: Vec&lt;u8&gt;,
-        trace_id: <span class="prelude-ty">Option</span>&lt;u64&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
+    <span class="kw">pub async fn </span>logical_plan(<span class="kw-2">&amp;</span><span class="self">self</span>, logical_plan: Vec&lt;u8&gt;, trace_id: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
         <span class="kw">let </span>_timer = <span class="macro">timer!</span>(metrics::METRIC_GRPC_LOGICAL_PLAN);
         <span class="self">self</span>.do_get(
             Request::Query(QueryRequest {
@@ -668,7 +585,7 @@
                     step: step.to_string(),
                 })),
             }),
-            <span class="prelude-val">None</span>,
+            <span class="number">0</span>,
         )
         .<span class="kw">await
     </span>}
@@ -679,7 +596,7 @@
             Request::Ddl(DdlRequest {
                 expr: <span class="prelude-val">Some</span>(DdlExpr::CreateTable(expr)),
             }),
-            <span class="prelude-val">None</span>,
+            <span class="number">0</span>,
         )
         .<span class="kw">await
     </span>}
@@ -690,7 +607,7 @@
             Request::Ddl(DdlRequest {
                 expr: <span class="prelude-val">Some</span>(DdlExpr::Alter(expr)),
             }),
-            <span class="prelude-val">None</span>,
+            <span class="number">0</span>,
         )
         .<span class="kw">await
     </span>}
@@ -701,29 +618,7 @@
             Request::Ddl(DdlRequest {
                 expr: <span class="prelude-val">Some</span>(DdlExpr::DropTable(expr)),
             }),
-            <span class="prelude-val">None</span>,
-        )
-        .<span class="kw">await
-    </span>}
-
-    <span class="kw">pub async fn </span>flush_table(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: FlushTableExpr) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
-        <span class="kw">let </span>_timer = <span class="macro">timer!</span>(metrics::METRIC_GRPC_FLUSH_TABLE);
-        <span class="self">self</span>.do_get(
-            Request::Ddl(DdlRequest {
-                expr: <span class="prelude-val">Some</span>(DdlExpr::FlushTable(expr)),
-            }),
-            <span class="prelude-val">None</span>,
-        )
-        .<span class="kw">await
-    </span>}
-
-    <span class="kw">pub async fn </span>compact_table(<span class="kw-2">&amp;</span><span class="self">self</span>, expr: CompactTableExpr) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
-        <span class="kw">let </span>_timer = <span class="macro">timer!</span>(metrics::METRIC_GRPC_COMPACT_TABLE);
-        <span class="self">self</span>.do_get(
-            Request::Ddl(DdlRequest {
-                expr: <span class="prelude-val">Some</span>(DdlExpr::CompactTable(expr)),
-            }),
-            <span class="prelude-val">None</span>,
+            <span class="number">0</span>,
         )
         .<span class="kw">await
     </span>}
@@ -734,12 +629,12 @@
             Request::Ddl(DdlRequest {
                 expr: <span class="prelude-val">Some</span>(DdlExpr::TruncateTable(expr)),
             }),
-            <span class="prelude-val">None</span>,
+            <span class="number">0</span>,
         )
         .<span class="kw">await
     </span>}
 
-    <span class="kw">async fn </span>do_get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: Request, trace_id: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
+    <span class="kw">async fn </span>do_get(<span class="kw-2">&amp;</span><span class="self">self</span>, request: Request, trace_id: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Output&gt; {
         <span class="comment">// FIXME(paomian): should be added some labels for metrics
         </span><span class="kw">let </span>_timer = <span class="macro">timer!</span>(metrics::METRIC_GRPC_DO_GET);
         <span class="kw">let </span>request = <span class="self">self</span>.to_rpc_request(request, trace_id);
@@ -749,55 +644,81 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>client = <span class="self">self</span>.client.make_flight_client()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>flight_data: Vec&lt;FlightData&gt; = client
-            .mut_inner()
-            .do_get(request)
-            .and_then(|response| response.into_inner().try_collect())
-            .<span class="kw">await
-            </span>.map_err(|e| {
-                <span class="kw">let </span>tonic_code = e.code();
-                <span class="kw">let </span>e: error::Error = e.into();
-                <span class="kw">let </span>code = e.status_code();
-                <span class="kw">let </span>msg = e.to_string();
-                ServerSnafu { code, msg }
-                    .fail::&lt;()&gt;()
-                    .map_err(BoxedError::new)
-                    .context(error::FlightGetSnafu {
-                        tonic_code,
-                        addr: client.addr(),
-                    })
-                    .map_err(|error| {
-                        <span class="macro">logging::error!</span>(
-                            <span class="string">&quot;Failed to do Flight get, addr: {}, code: {}, source: {}&quot;</span>,
-                            client.addr(),
-                            tonic_code,
-                            error
-                        );
-                        error
-                    })
-                    .unwrap_err()
-            })<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>decoder = <span class="kw-2">&amp;mut </span>FlightDecoder::default();
-        <span class="kw">let </span>flight_messages = flight_data
-            .into_iter()
-            .map(|x| decoder.try_decode(x).context(ConvertFlightDataSnafu))
-            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;&gt;()<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>output = <span class="kw">if let </span><span class="prelude-val">Some</span>(FlightMessage::AffectedRows(rows)) = flight_messages.get(<span class="number">0</span>) {
-            <span class="macro">ensure!</span>(
-                flight_messages.len() == <span class="number">1</span>,
-                IllegalFlightMessagesSnafu {
-                    reason: <span class="string">&quot;Expect &#39;AffectedRows&#39; Flight messages to be one and only!&quot;
-                </span>}
+        <span class="kw">let </span>response = client.mut_inner().do_get(request).<span class="kw">await</span>.map_err(|e| {
+            <span class="kw">let </span>tonic_code = e.code();
+            <span class="kw">let </span>e: error::Error = e.into();
+            <span class="kw">let </span>code = e.status_code();
+            <span class="kw">let </span>msg = e.to_string();
+            <span class="kw">let </span>error = Error::FlightGet {
+                tonic_code,
+                addr: client.addr().to_string(),
+                source: BoxedError::new(ServerSnafu { code, msg }.build()),
+            };
+            <span class="macro">logging::error!</span>(
+                <span class="string">&quot;Failed to do Flight get, addr: {}, code: {}, source: {:?}&quot;</span>,
+                client.addr(),
+                tonic_code,
+                error
             );
-            Output::AffectedRows(<span class="kw-2">*</span>rows)
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>recordbatches = flight_messages_to_recordbatches(flight_messages)
-                .context(ConvertFlightDataSnafu)<span class="question-mark">?</span>;
-            Output::RecordBatches(recordbatches)
+            error
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>flight_data_stream = response.into_inner();
+        <span class="kw">let </span><span class="kw-2">mut </span>decoder = FlightDecoder::default();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>flight_message_stream = flight_data_stream.map(<span class="kw">move </span>|flight_data| {
+            flight_data
+                .map_err(Error::from)
+                .and_then(|data| decoder.try_decode(data).context(ConvertFlightDataSnafu))
+        });
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(first_flight_message) = flight_message_stream.next().<span class="kw">await else </span>{
+            <span class="kw">return </span>IllegalFlightMessagesSnafu {
+                reason: <span class="string">&quot;Expect the response not to be empty&quot;</span>,
+            }
+            .fail();
         };
-        <span class="prelude-val">Ok</span>(output)
+
+        <span class="kw">let </span>first_flight_message = first_flight_message<span class="question-mark">?</span>;
+
+        <span class="kw">match </span>first_flight_message {
+            FlightMessage::AffectedRows(rows) =&gt; {
+                <span class="macro">ensure!</span>(
+                    flight_message_stream.next().<span class="kw">await</span>.is_none(),
+                    IllegalFlightMessagesSnafu {
+                        reason: <span class="string">&quot;Expect &#39;AffectedRows&#39; Flight messages to be the one and the only!&quot;
+                    </span>}
+                );
+                <span class="prelude-val">Ok</span>(Output::AffectedRows(rows))
+            }
+            FlightMessage::Recordbatch(<span class="kw">_</span>) =&gt; IllegalFlightMessagesSnafu {
+                reason: <span class="string">&quot;The first flight message cannot be a RecordBatch message&quot;</span>,
+            }
+            .fail(),
+            FlightMessage::Schema(schema) =&gt; {
+                <span class="kw">let </span>stream = Box::pin(<span class="macro">stream!</span>({
+                    <span class="kw">while let </span><span class="prelude-val">Some</span>(flight_message) = flight_message_stream.next().<span class="kw">await </span>{
+                        <span class="kw">let </span>flight_message = flight_message
+                            .map_err(BoxedError::new)
+                            .context(ExternalSnafu)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>FlightMessage::Recordbatch(record_batch) = flight_message <span class="kw">else </span>{
+                            <span class="kw">yield </span>IllegalFlightMessagesSnafu {reason: <span class="string">&quot;A Schema message must be succeeded exclusively by a set of RecordBatch messages&quot;</span>}
+                                        .fail()
+                                        .map_err(BoxedError::new)
+                                        .context(ExternalSnafu);
+                            <span class="kw">break</span>;
+                        };
+                        <span class="kw">yield </span><span class="prelude-val">Ok</span>(record_batch);
+                    }
+                }));
+                <span class="kw">let </span>record_batch_stream = RecordBatchStreamAdaptor {
+                    schema,
+                    stream,
+                    output_ordering: <span class="prelude-val">None</span>,
+                };
+                <span class="prelude-val">Ok</span>(Output::Stream(Box::pin(record_batch_stream)))
+            }
+        }
     }
 }
 
@@ -808,105 +729,10 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span>std::sync::Arc;
-
-    <span class="kw">use </span>api::helper::ColumnDataTypeWrapper;
     <span class="kw">use </span>api::v1::auth_header::AuthScheme;
-    <span class="kw">use </span>api::v1::{AuthHeader, Basic, Column};
-    <span class="kw">use </span>common_grpc::select::{null_mask, values};
-    <span class="kw">use </span>common_grpc_expr::column_to_vector;
-    <span class="kw">use </span>datatypes::prelude::{Vector, VectorRef};
-    <span class="kw">use </span>datatypes::vectors::{
-        BinaryVector, BooleanVector, DateTimeVector, DateVector, Float32Vector, Float64Vector,
-        Int16Vector, Int32Vector, Int64Vector, Int8Vector, StringVector, UInt16Vector,
-        UInt32Vector, UInt64Vector, UInt8Vector,
-    };
+    <span class="kw">use </span>api::v1::{AuthHeader, Basic};
 
     <span class="kw">use </span><span class="kw">crate</span>::database::FlightContext;
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_column_to_vector() {
-        <span class="kw">let </span><span class="kw-2">mut </span>column = create_test_column(Arc::new(BooleanVector::from(<span class="macro">vec!</span>[<span class="bool-val">true</span>])));
-        column.datatype = -<span class="number">100</span>;
-        <span class="kw">let </span>result = column_to_vector(<span class="kw-2">&amp;</span>column, <span class="number">1</span>);
-        <span class="macro">assert!</span>(result.is_err());
-        <span class="macro">assert_eq!</span>(
-            result.unwrap_err().to_string(),
-            <span class="string">&quot;Column datatype error, source: Unknown proto column datatype: -100&quot;
-        </span>);
-
-        <span class="macro">macro_rules! </span>test_with_vector {
-            (<span class="macro-nonterminal">$vector</span>: expr) =&gt; {
-                <span class="kw">let </span>vector = Arc::new(<span class="macro-nonterminal">$vector</span>);
-                <span class="kw">let </span>column = create_test_column(vector.clone());
-                <span class="kw">let </span>result = column_to_vector(<span class="kw-2">&amp;</span>column, vector.len() <span class="kw">as </span>u32).unwrap();
-                <span class="macro">assert_eq!</span>(result, vector <span class="kw">as </span>VectorRef);
-            };
-        }
-
-        <span class="macro">test_with_vector!</span>(BooleanVector::from(<span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="bool-val">true</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="bool-val">false</span>)]));
-        <span class="macro">test_with_vector!</span>(Int8Vector::from(<span class="macro">vec!</span>[<span class="prelude-val">Some</span>(i8::MIN), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(i8::MAX)]));
-        <span class="macro">test_with_vector!</span>(Int16Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(i16::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(i16::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(Int32Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(i32::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(i32::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(Int64Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(i64::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(i64::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(UInt8Vector::from(<span class="macro">vec!</span>[<span class="prelude-val">Some</span>(u8::MIN), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(u8::MAX)]));
-        <span class="macro">test_with_vector!</span>(UInt16Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(u16::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(u16::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(UInt32Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(u32::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(u32::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(UInt64Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(u64::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(u64::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(Float32Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(f32::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(f32::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(Float64Vector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(f64::MIN),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(f64::MAX)
-        ]));
-        <span class="macro">test_with_vector!</span>(BinaryVector::from(<span class="macro">vec!</span>[
-            <span class="prelude-val">Some</span>(<span class="string">b&quot;&quot;</span>.to_vec()),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="string">b&quot;hello&quot;</span>.to_vec())
-        ]));
-        <span class="macro">test_with_vector!</span>(StringVector::from(<span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>),]));
-        <span class="macro">test_with_vector!</span>(DateVector::from(<span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="number">1</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="number">3</span>)]));
-        <span class="macro">test_with_vector!</span>(DateTimeVector::from(<span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="number">4</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="number">6</span>)]));
-    }
-
-    <span class="kw">fn </span>create_test_column(vector: VectorRef) -&gt; Column {
-        <span class="kw">let </span>wrapper: ColumnDataTypeWrapper = vector.data_type().try_into().unwrap();
-        Column {
-            column_name: <span class="string">&quot;test&quot;</span>.to_string(),
-            semantic_type: <span class="number">1</span>,
-            values: <span class="prelude-val">Some</span>(values(<span class="kw-2">&amp;</span>[vector.clone()]).unwrap()),
-            null_mask: null_mask(<span class="kw-2">&amp;</span>[vector.clone()], vector.len()),
-            datatype: wrapper.datatype() <span class="kw">as </span>i32,
-        }
-    }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_flight_ctx() {

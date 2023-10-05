@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/query/src/datafusion.rs`."><title>datafusion.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="query" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../query/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/query/src/datafusion.rs`."><title>datafusion.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="query" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../query/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -697,6 +697,12 @@
 <a href="#697" id="697">697</a>
 <a href="#698" id="698">698</a>
 <a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -753,8 +759,8 @@
 <span class="kw">pub use </span><span class="kw">crate</span>::datafusion::planner::DfContextProviderAdapter;
 <span class="kw">use </span><span class="kw">crate</span>::error::{
     CatalogSnafu, CreateRecordBatchSnafu, CreateSchemaSnafu, DataFusionSnafu,
-    MissingTimestampColumnSnafu, QueryExecutionSnafu, <span class="prelude-ty">Result</span>, TableNotFoundSnafu,
-    UnimplementedSnafu, UnsupportedExprSnafu,
+    MissingTableMutationHandlerSnafu, MissingTimestampColumnSnafu, QueryExecutionSnafu, <span class="prelude-ty">Result</span>,
+    TableNotFoundSnafu, UnimplementedSnafu, UnsupportedExprSnafu,
 };
 <span class="kw">use </span><span class="kw">crate</span>::executor::QueryExecutor;
 <span class="kw">use </span><span class="kw">crate</span>::logical_optimizer::LogicalOptimizer;
@@ -808,13 +814,13 @@
             }
         );
 
-        <span class="kw">let </span>default_catalog = query_ctx.current_catalog();
-        <span class="kw">let </span>default_schema = query_ctx.current_schema();
-        <span class="kw">let </span>table_name = dml.table_name.resolve(<span class="kw-2">&amp;</span>default_catalog, <span class="kw-2">&amp;</span>default_schema);
+        <span class="kw">let </span>default_catalog = <span class="kw-2">&amp;</span>query_ctx.current_catalog().to_owned();
+        <span class="kw">let </span>default_schema = <span class="kw-2">&amp;</span>query_ctx.current_schema().to_owned();
+        <span class="kw">let </span>table_name = dml.table_name.resolve(default_catalog, default_schema);
         <span class="kw">let </span>table = <span class="self">self</span>.find_table(<span class="kw-2">&amp;</span>table_name).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let </span>output = <span class="self">self
-            </span>.exec_query_plan(LogicalPlan::DfPlan((<span class="kw-2">*</span>dml.input).clone()), query_ctx)
+            </span>.exec_query_plan(LogicalPlan::DfPlan((<span class="kw-2">*</span>dml.input).clone()), query_ctx.clone())
             .<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>stream = <span class="kw">match </span>output {
             Output::RecordBatches(batches) =&gt; batches.as_stream(),
@@ -831,8 +837,14 @@
                 .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>rows = <span class="kw">match </span>dml.op {
-                WriteOp::Insert =&gt; <span class="self">Self</span>::insert(<span class="kw-2">&amp;</span>table_name, <span class="kw-2">&amp;</span>table, column_vectors).<span class="kw">await</span><span class="question-mark">?</span>,
-                WriteOp::Delete =&gt; <span class="self">Self</span>::delete(<span class="kw-2">&amp;</span>table_name, <span class="kw-2">&amp;</span>table, column_vectors).<span class="kw">await</span><span class="question-mark">?</span>,
+                WriteOp::Insert =&gt; {
+                    <span class="self">self</span>.insert(<span class="kw-2">&amp;</span>table_name, column_vectors, query_ctx.clone())
+                        .<span class="kw">await</span><span class="question-mark">?
+                </span>}
+                WriteOp::Delete =&gt; {
+                    <span class="self">self</span>.delete(<span class="kw-2">&amp;</span>table_name, <span class="kw-2">&amp;</span>table, column_vectors, query_ctx.clone())
+                        .<span class="kw">await</span><span class="question-mark">?
+                </span>}
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;guarded by the &#39;ensure!&#39; at the beginning&quot;</span>),
             };
             affected_rows += rows;
@@ -841,10 +853,15 @@
     }
 
     <span class="kw">async fn </span>delete&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
         table_name: <span class="kw-2">&amp;</span>ResolvedTableReference&lt;<span class="lifetime">&#39;a</span>&gt;,
         table: <span class="kw-2">&amp;</span>TableRef,
         column_vectors: HashMap&lt;String, VectorRef&gt;,
+        query_ctx: QueryContextRef,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+        <span class="kw">let </span>catalog_name = table_name.catalog.to_string();
+        <span class="kw">let </span>schema_name = table_name.schema.to_string();
+        <span class="kw">let </span>table_name = table_name.table.to_string();
         <span class="kw">let </span>table_schema = table.schema();
         <span class="kw">let </span>ts_column = table_schema
             .timestamp_column()
@@ -864,35 +881,38 @@
             .collect::&lt;HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
 
         <span class="kw">let </span>request = DeleteRequest {
+            catalog_name,
+            schema_name,
+            table_name,
             key_column_values: column_vectors,
         };
 
-        table
-            .delete(request)
+        <span class="self">self</span>.state
+            .table_mutation_handler()
+            .context(MissingTableMutationHandlerSnafu)<span class="question-mark">?
+            </span>.delete(request, query_ctx)
             .<span class="kw">await
-            </span>.map_err(BoxedError::new)
-            .context(QueryExecutionSnafu)
-    }
+    </span>}
 
     <span class="kw">async fn </span>insert&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
         table_name: <span class="kw-2">&amp;</span>ResolvedTableReference&lt;<span class="lifetime">&#39;a</span>&gt;,
-        table: <span class="kw-2">&amp;</span>TableRef,
         column_vectors: HashMap&lt;String, VectorRef&gt;,
+        query_ctx: QueryContextRef,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="kw">let </span>request = InsertRequest {
             catalog_name: table_name.catalog.to_string(),
             schema_name: table_name.schema.to_string(),
             table_name: table_name.table.to_string(),
             columns_values: column_vectors,
-            region_number: <span class="number">0</span>,
         };
 
-        table
-            .insert(request)
+        <span class="self">self</span>.state
+            .table_mutation_handler()
+            .context(MissingTableMutationHandlerSnafu)<span class="question-mark">?
+            </span>.insert(request, query_ctx)
             .<span class="kw">await
-            </span>.map_err(BoxedError::new)
-            .context(QueryExecutionSnafu)
-    }
+    </span>}
 
     <span class="kw">async fn </span>find_table(<span class="kw-2">&amp;</span><span class="self">self</span>, table_name: <span class="kw-2">&amp;</span>ResolvedTableReference&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;TableRef&gt; {
         <span class="kw">let </span>catalog_name = table_name.catalog.as_ref();
@@ -962,9 +982,7 @@
         <span class="prelude-val">Ok</span>(DataFrame::DataFusion(
             <span class="self">self</span>.state
                 .read_table(table)
-                .context(error::DatafusionSnafu {
-                    msg: <span class="string">&quot;Fail to create dataframe for table&quot;</span>,
-                })
+                .context(error::DatafusionSnafu)
                 .map_err(BoxedError::new)
                 .context(QueryExecutionSnafu)<span class="question-mark">?</span>,
         ))
@@ -980,9 +998,7 @@
                     </span>.state
                     .session_state()
                     .optimize(df_plan)
-                    .context(error::DatafusionSnafu {
-                        msg: <span class="string">&quot;Fail to optimize logical plan&quot;</span>,
-                    })
+                    .context(error::DatafusionSnafu)
                     .map_err(BoxedError::new)
                     .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
 
@@ -1006,9 +1022,7 @@
                 <span class="kw">let </span>physical_plan = state
                     .create_physical_plan(df_plan)
                     .<span class="kw">await
-                    </span>.context(error::DatafusionSnafu {
-                        msg: <span class="string">&quot;Fail to create physical plan&quot;</span>,
-                    })
+                    </span>.context(error::DatafusionSnafu)
                     .map_err(BoxedError::new)
                     .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
 
@@ -1079,9 +1093,7 @@
                 </span><span class="macro">assert_eq!</span>(<span class="number">1</span>, plan.output_partitioning().partition_count());
                 <span class="kw">let </span>df_stream = plan
                     .execute(<span class="number">0</span>, task_ctx)
-                    .context(error::DatafusionSnafu {
-                        msg: <span class="string">&quot;Failed to execute DataFusion merge exec&quot;</span>,
-                    })
+                    .context(error::DatafusionSnafu)
                     .map_err(BoxedError::new)
                     .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
                 <span class="kw">let </span>stream = RecordBatchStreamAdapter::try_new(df_stream)
@@ -1132,35 +1144,27 @@
     <span class="kw">let </span>context = SessionContext::new();
     context
         .register_batch(table_name, record_batch.into_df_record_batch())
-        .context(error::DatafusionSnafu {
-            msg: <span class="string">&quot;Fail to register a record batch as a table&quot;</span>,
-        })
+        .context(error::DatafusionSnafu)
         .map_err(BoxedError::new)
         .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>dataframe = context
         .sql(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;SELECT * FROM {table_name}&quot;</span>))
         .<span class="kw">await
-        </span>.context(error::DatafusionSnafu {
-            msg: <span class="string">&quot;Fail to execute a sql&quot;</span>,
-        })
+        </span>.context(error::DatafusionSnafu)
         .map_err(BoxedError::new)
         .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
     <span class="kw">if let </span><span class="prelude-val">Some</span>(filter) = filter {
         <span class="kw">let </span>filter = convert_filter_to_df_filter(filter)<span class="question-mark">?</span>;
         dataframe = dataframe
             .filter(filter)
-            .context(error::DatafusionSnafu {
-                msg: <span class="string">&quot;Fail to filter&quot;</span>,
-            })
+            .context(error::DatafusionSnafu)
             .map_err(BoxedError::new)
             .context(QueryExecutionSnafu)<span class="question-mark">?
     </span>}
     <span class="kw">let </span>df_batches = dataframe
         .collect()
         .<span class="kw">await
-        </span>.context(error::DatafusionSnafu {
-            msg: <span class="string">&quot;Fail to collect the record batches&quot;</span>,
-        })
+        </span>.context(error::DatafusionSnafu)
         .map_err(BoxedError::new)
         .context(QueryExecutionSnafu)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>batches = Vec::with_capacity(df_batches.len());
@@ -1179,7 +1183,7 @@
     <span class="kw">use </span>std::borrow::Cow::Borrowed;
     <span class="kw">use </span>std::sync::Arc;
 
-    <span class="kw">use </span>catalog::{CatalogManager, RegisterTableRequest};
+    <span class="kw">use </span>catalog::RegisterTableRequest;
     <span class="kw">use </span>common_catalog::consts::{DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME, NUMBERS_TABLE_ID};
     <span class="kw">use </span>common_query::Output;
     <span class="kw">use </span>common_recordbatch::{util, RecordBatch};
@@ -1200,17 +1204,17 @@
     <span class="kw">use </span><span class="kw">crate</span>::query_engine::{QueryEngineFactory, QueryEngineRef};
 
     <span class="kw">async fn </span>create_test_engine() -&gt; QueryEngineRef {
-        <span class="kw">let </span>catalog_manager = catalog::local::new_memory_catalog_manager().unwrap();
+        <span class="kw">let </span>catalog_manager = catalog::memory::new_memory_catalog_manager().unwrap();
         <span class="kw">let </span>req = RegisterTableRequest {
             catalog: DEFAULT_CATALOG_NAME.to_string(),
             schema: DEFAULT_SCHEMA_NAME.to_string(),
             table_name: NUMBERS_TABLE_NAME.to_string(),
             table_id: NUMBERS_TABLE_ID,
-            table: Arc::new(NumbersTable::default()),
+            table: NumbersTable::table(NUMBERS_TABLE_ID),
         };
-        <span class="kw">let _ </span>= catalog_manager.register_table(req).<span class="kw">await</span>.unwrap();
+        catalog_manager.register_table_sync(req).unwrap();
 
-        QueryEngineFactory::new(catalog_manager, <span class="bool-val">false</span>).query_engine()
+        QueryEngineFactory::new(catalog_manager, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>).query_engine()
     }
 
     <span class="attr">#[tokio::test]
@@ -1353,7 +1357,9 @@
         <span class="kw">let </span>columns = <span class="macro">vec!</span>[builder.to_vector()];
         <span class="kw">let </span>record_batch = RecordBatch::new(schema, columns).unwrap();
         <span class="kw">let </span>output = execute_show_with_filter(record_batch, <span class="prelude-val">None</span>).<span class="kw">await</span>.unwrap();
-        <span class="kw">let </span>Output::RecordBatches(record_batches) = output <span class="kw">else </span>{<span class="macro">unreachable!</span>()};
+        <span class="kw">let </span>Output::RecordBatches(record_batches) = output <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>()
+        };
         <span class="kw">let </span>expected = <span class="string">&quot;\
 +----------------+
 | Tables         |
@@ -1381,12 +1387,18 @@
         )
         .unwrap()[<span class="number">0</span>]
             .clone();
-        <span class="kw">let </span>Statement::ShowTables(ShowTables { kind, .. }) = statement <span class="kw">else </span>{<span class="macro">unreachable!</span>()};
-        <span class="kw">let </span>ShowKind::Where(filter) = kind <span class="kw">else </span>{<span class="macro">unreachable!</span>()};
+        <span class="kw">let </span>Statement::ShowTables(ShowTables { kind, .. }) = statement <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>()
+        };
+        <span class="kw">let </span>ShowKind::Where(filter) = kind <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>()
+        };
         <span class="kw">let </span>output = execute_show_with_filter(record_batch, <span class="prelude-val">Some</span>(filter))
             .<span class="kw">await
             </span>.unwrap();
-        <span class="kw">let </span>Output::RecordBatches(record_batches) = output <span class="kw">else </span>{<span class="macro">unreachable!</span>()};
+        <span class="kw">let </span>Output::RecordBatches(record_batches) = output <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>()
+        };
         <span class="kw">let </span>expected = <span class="string">&quot;\
 +---------+
 | Tables  |

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/servers/src/postgres/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="servers" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../servers/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/servers/src/postgres/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="servers" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../servers/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -727,6 +727,83 @@
 <a href="#727" id="727">727</a>
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -741,9 +818,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-</span><span class="kw">use </span>std::ops::Deref;
+</span><span class="kw">mod </span>interval;
+
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::ops::Deref;
 
 <span class="kw">use </span>chrono::{NaiveDate, NaiveDateTime};
+<span class="kw">use </span>common_time::Interval;
 <span class="kw">use </span>datafusion_common::ScalarValue;
 <span class="kw">use </span>datatypes::prelude::{ConcreteDataType, Value};
 <span class="kw">use </span>datatypes::schema::Schema;
@@ -754,6 +835,7 @@
 <span class="kw">use </span>pgwire::error::{ErrorInfo, PgWireError, PgWireResult};
 <span class="kw">use </span>query::plan::LogicalPlan;
 
+<span class="kw">use </span><span class="self">self</span>::interval::PgInterval;
 <span class="kw">use </span><span class="kw">crate</span>::error::{<span class="self">self</span>, Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span><span class="kw">crate</span>::SqlPlan;
 
@@ -826,7 +908,8 @@
                 })))
             }
         }
-        Value::Interval(<span class="kw">_</span>) | Value::List(<span class="kw">_</span>) =&gt; {
+        Value::Interval(v) =&gt; builder.encode_field(<span class="kw-2">&amp;</span>PgInterval::from(<span class="kw-2">*</span>v)),
+        Value::List(<span class="kw">_</span>) | Value::Duration(<span class="kw">_</span>) =&gt; {
             <span class="prelude-val">Err</span>(PgWireError::ApiError(Box::new(Error::Internal {
                 err_msg: <span class="macro">format!</span>(
                     <span class="string">&quot;cannot write value {:?} in postgres protocol: unimplemented&quot;</span>,
@@ -854,7 +937,9 @@
         <span class="kw-2">&amp;</span>ConcreteDataType::Timestamp(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(Type::TIMESTAMP),
         <span class="kw-2">&amp;</span>ConcreteDataType::Time(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(Type::TIME),
         <span class="kw-2">&amp;</span>ConcreteDataType::Interval(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(Type::INTERVAL),
-        <span class="kw-2">&amp;</span>ConcreteDataType::List(<span class="kw">_</span>) | <span class="kw-2">&amp;</span>ConcreteDataType::Dictionary(<span class="kw">_</span>) =&gt; error::InternalSnafu {
+        <span class="kw-2">&amp;</span>ConcreteDataType::Duration(<span class="kw">_</span>)
+        | <span class="kw-2">&amp;</span>ConcreteDataType::List(<span class="kw">_</span>)
+        | <span class="kw-2">&amp;</span>ConcreteDataType::Dictionary(<span class="kw">_</span>) =&gt; error::InternalSnafu {
             err_msg: <span class="macro">format!</span>(<span class="string">&quot;not implemented for column datatype {origin:?}&quot;</span>),
         }
         .fail(),
@@ -890,35 +975,42 @@
     <span class="kw">match </span>param_type {
         <span class="kw-2">&amp;</span>Type::VARCHAR | <span class="kw-2">&amp;</span>Type::TEXT =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(
             <span class="string">&quot;&#39;{}&#39;&quot;</span>,
-            portal.parameter::&lt;String&gt;(idx)<span class="question-mark">?</span>.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)
+            portal
+                .parameter::&lt;String&gt;(idx, param_type)<span class="question-mark">?
+                </span>.as_deref()
+                .unwrap_or(<span class="string">&quot;&quot;</span>)
         )),
         <span class="kw-2">&amp;</span>Type::BOOL =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;bool&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;bool&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw-2">&amp;</span>Type::INT4 =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;i32&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;i32&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw-2">&amp;</span>Type::INT8 =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;i64&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;i64&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw-2">&amp;</span>Type::FLOAT4 =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;f32&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;f32&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw-2">&amp;</span>Type::FLOAT8 =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;f64&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;f64&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw-2">&amp;</span>Type::DATE =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;NaiveDate&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;NaiveDate&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.format(<span class="string">&quot;%Y-%m-%d&quot;</span>).to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw-2">&amp;</span>Type::TIMESTAMP =&gt; <span class="prelude-val">Ok</span>(portal
-            .parameter::&lt;NaiveDateTime&gt;(idx)<span class="question-mark">?
+            .parameter::&lt;NaiveDateTime&gt;(idx, param_type)<span class="question-mark">?
             </span>.map(|v| v.format(<span class="string">&quot;%Y-%m-%d %H:%M:%S%.6f&quot;</span>).to_string())
+            .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
+        <span class="kw-2">&amp;</span>Type::INTERVAL =&gt; <span class="prelude-val">Ok</span>(portal
+            .parameter::&lt;PgInterval&gt;(idx, param_type)<span class="question-mark">?
+            </span>.map(|v| v.to_string())
             .unwrap_or_else(|| <span class="string">&quot;&quot;</span>.to_owned())),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(invalid_parameter_error(
             <span class="string">&quot;unsupported_parameter_type&quot;</span>,
@@ -974,22 +1066,30 @@
             )),
         ));
     }
-    <span class="kw">if </span>client_param_types.len() != param_count {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(invalid_parameter_error(
-            <span class="string">&quot;invalid_parameter_count&quot;</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;Expected: {}, found: {}&quot;</span>,
-                client_param_types.len(),
-                param_count
-            )),
-        ));
-    }
 
-    <span class="kw">for </span>(idx, client_type) <span class="kw">in </span>client_param_types.iter().enumerate() {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(server_type)) = param_types.get(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;${}&quot;</span>, idx + <span class="number">1</span>)) <span class="kw">else </span>{ <span class="kw">continue </span>};
-        <span class="kw">let </span>value = <span class="kw">match </span>client_type {
+    <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..param_count {
+        <span class="kw">let </span>server_type =
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(server_infer_type)) = param_types.get(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;${}&quot;</span>, idx + <span class="number">1</span>)) {
+                server_infer_type
+            } <span class="kw">else </span>{
+                <span class="comment">// at the moment we require type information inferenced by
+                // server so here we return error if the type is unknown from
+                // server-side.
+                //
+                // It might be possible to parse the parameter just using client
+                // specified type, we will implement that if there is a case.
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(invalid_parameter_error(<span class="string">&quot;unknown_parameter_type&quot;</span>, <span class="prelude-val">None</span>));
+            };
+
+        <span class="kw">let </span>client_type = <span class="kw">if let </span><span class="prelude-val">Some</span>(client_given_type) = client_param_types.get(idx) {
+            client_given_type.clone()
+        } <span class="kw">else </span>{
+            type_gt_to_pg(server_type).map_err(|e| PgWireError::ApiError(Box::new(e)))<span class="question-mark">?
+        </span>};
+
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="kw-2">&amp;</span>client_type {
             <span class="kw-2">&amp;</span>Type::VARCHAR | <span class="kw-2">&amp;</span>Type::TEXT =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;String&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;String&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::String(<span class="kw">_</span>) =&gt; ScalarValue::Utf8(data),
                     <span class="kw">_ </span>=&gt; {
@@ -1004,7 +1104,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::BOOL =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;bool&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;bool&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Boolean(<span class="kw">_</span>) =&gt; ScalarValue::Boolean(data),
                     <span class="kw">_ </span>=&gt; {
@@ -1019,7 +1119,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::INT2 =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;i16&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;i16&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Int8(<span class="kw">_</span>) =&gt; ScalarValue::Int8(data.map(|n| n <span class="kw">as </span>i8)),
                     ConcreteDataType::Int16(<span class="kw">_</span>) =&gt; ScalarValue::Int16(data),
@@ -1045,7 +1145,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::INT4 =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;i32&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;i32&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Int8(<span class="kw">_</span>) =&gt; ScalarValue::Int8(data.map(|n| n <span class="kw">as </span>i8)),
                     ConcreteDataType::Int16(<span class="kw">_</span>) =&gt; ScalarValue::Int16(data.map(|n| n <span class="kw">as </span>i16)),
@@ -1071,7 +1171,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::INT8 =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;i64&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;i64&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Int8(<span class="kw">_</span>) =&gt; ScalarValue::Int8(data.map(|n| n <span class="kw">as </span>i8)),
                     ConcreteDataType::Int16(<span class="kw">_</span>) =&gt; ScalarValue::Int16(data.map(|n| n <span class="kw">as </span>i16)),
@@ -1097,7 +1197,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::FLOAT4 =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;f32&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;f32&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Int8(<span class="kw">_</span>) =&gt; ScalarValue::Int8(data.map(|n| n <span class="kw">as </span>i8)),
                     ConcreteDataType::Int16(<span class="kw">_</span>) =&gt; ScalarValue::Int16(data.map(|n| n <span class="kw">as </span>i16)),
@@ -1121,7 +1221,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::FLOAT8 =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;f64&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;f64&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Int8(<span class="kw">_</span>) =&gt; ScalarValue::Int8(data.map(|n| n <span class="kw">as </span>i8)),
                     ConcreteDataType::Int16(<span class="kw">_</span>) =&gt; ScalarValue::Int16(data.map(|n| n <span class="kw">as </span>i16)),
@@ -1145,7 +1245,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::TIMESTAMP =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;NaiveDateTime&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;NaiveDateTime&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Timestamp(unit) =&gt; <span class="kw">match </span><span class="kw-2">*</span>unit {
                         TimestampType::Second(<span class="kw">_</span>) =&gt; {
@@ -1179,7 +1279,7 @@
                 }
             }
             <span class="kw-2">&amp;</span>Type::DATE =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;NaiveDate&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;NaiveDate&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::Date(<span class="kw">_</span>) =&gt; ScalarValue::Date32(data.map(|d| {
                         (d - NaiveDate::from_ymd_opt(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>).unwrap()).num_days() <span class="kw">as </span>i32
@@ -1195,8 +1295,25 @@
                     }
                 }
             }
+            <span class="kw-2">&amp;</span>Type::INTERVAL =&gt; {
+                <span class="kw">let </span>data = portal.parameter::&lt;PgInterval&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
+                <span class="kw">match </span>server_type {
+                    ConcreteDataType::Interval(<span class="kw">_</span>) =&gt; {
+                        ScalarValue::IntervalMonthDayNano(data.map(|i| Interval::from(i).to_i128()))
+                    }
+                    <span class="kw">_ </span>=&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(invalid_parameter_error(
+                            <span class="string">&quot;invalid_parameter_type&quot;</span>,
+                            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                                <span class="string">&quot;Expected: {}, found: {}&quot;</span>,
+                                server_type, client_type
+                            )),
+                        ));
+                    }
+                }
+            }
             <span class="kw-2">&amp;</span>Type::BYTEA =&gt; {
-                <span class="kw">let </span>data = portal.parameter::&lt;Vec&lt;u8&gt;&gt;(idx)<span class="question-mark">?</span>;
+                <span class="kw">let </span>data = portal.parameter::&lt;Vec&lt;u8&gt;&gt;(idx, <span class="kw-2">&amp;</span>client_type)<span class="question-mark">?</span>;
                 <span class="kw">match </span>server_type {
                     ConcreteDataType::String(<span class="kw">_</span>) =&gt; {
                         ScalarValue::Utf8(data.map(|d| String::from_utf8_lossy(<span class="kw-2">&amp;</span>d).to_string()))
@@ -1218,10 +1335,27 @@
                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Found type: {}&quot;</span>, client_type)),
             ))<span class="question-mark">?</span>,
         };
+
         results.push(value);
     }
 
     <span class="prelude-val">Ok</span>(results)
+}
+
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>param_types_to_pg_types(
+    param_types: <span class="kw-2">&amp;</span>HashMap&lt;String, <span class="prelude-ty">Option</span>&lt;ConcreteDataType&gt;&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Type&gt;&gt; {
+    <span class="kw">let </span>param_count = param_types.len();
+    <span class="kw">let </span><span class="kw-2">mut </span>types = Vec::with_capacity(param_count);
+    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..param_count {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(param_type)) = param_types.get(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;${}&quot;</span>, i + <span class="number">1</span>)) {
+            <span class="kw">let </span>pg_type = type_gt_to_pg(param_type)<span class="question-mark">?</span>;
+            types.push(pg_type);
+        } <span class="kw">else </span>{
+            types.push(Type::UNKNOWN);
+        }
+    }
+    <span class="prelude-val">Ok</span>(types)
 }
 
 <span class="attr">#[cfg(test)]
@@ -1259,6 +1393,11 @@
             ),
             ColumnSchema::new(<span class="string">&quot;dates&quot;</span>, ConcreteDataType::date_datatype(), <span class="bool-val">true</span>),
             ColumnSchema::new(<span class="string">&quot;times&quot;</span>, ConcreteDataType::time_second_datatype(), <span class="bool-val">true</span>),
+            ColumnSchema::new(
+                <span class="string">&quot;intervals&quot;</span>,
+                ConcreteDataType::interval_month_day_nano_datatype(),
+                <span class="bool-val">true</span>,
+            ),
         ];
         <span class="kw">let </span>pg_field_info = <span class="macro">vec!</span>[
             FieldInfo::new(<span class="string">&quot;nulls&quot;</span>.into(), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Type::UNKNOWN, FieldFormat::Text),
@@ -1308,6 +1447,13 @@
             ),
             FieldInfo::new(<span class="string">&quot;dates&quot;</span>.into(), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Type::DATE, FieldFormat::Text),
             FieldInfo::new(<span class="string">&quot;times&quot;</span>.into(), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, Type::TIME, FieldFormat::Text),
+            FieldInfo::new(
+                <span class="string">&quot;intervals&quot;</span>.into(),
+                <span class="prelude-val">None</span>,
+                <span class="prelude-val">None</span>,
+                Type::INTERVAL,
+                FieldFormat::Text,
+            ),
         ];
         <span class="kw">let </span>schema = Schema::new(column_schemas);
         <span class="kw">let </span>fs = schema_to_pg(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>Format::UnifiedText).unwrap();
@@ -1403,6 +1549,13 @@
                 Type::TIMESTAMP,
                 FieldFormat::Text,
             ),
+            FieldInfo::new(
+                <span class="string">&quot;intervals&quot;</span>.into(),
+                <span class="prelude-val">None</span>,
+                <span class="prelude-val">None</span>,
+                Type::INTERVAL,
+                FieldFormat::Text,
+            ),
         ];
 
         <span class="kw">let </span>values = <span class="macro">vec!</span>[
@@ -1432,6 +1585,7 @@
             Value::Time(<span class="number">1001i64</span>.into()),
             Value::DateTime(<span class="number">1000001i64</span>.into()),
             Value::Timestamp(<span class="number">1000001i64</span>.into()),
+            Value::Interval(<span class="number">1000001i128</span>.into()),
         ];
         <span class="kw">let </span><span class="kw-2">mut </span>builder = DataRowEncoder::new(Arc::new(schema));
         <span class="kw">for </span>i <span class="kw">in </span>values.iter() {

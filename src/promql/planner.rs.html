@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/promql/src/planner.rs`."><title>planner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="promql" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../promql/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/promql/src/planner.rs`."><title>planner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="promql" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../promql/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2046,6 +2046,78 @@
 <a href="#2046" id="2046">2046</a>
 <a href="#2047" id="2047">2047</a>
 <a href="#2048" id="2048">2048</a>
+<a href="#2049" id="2049">2049</a>
+<a href="#2050" id="2050">2050</a>
+<a href="#2051" id="2051">2051</a>
+<a href="#2052" id="2052">2052</a>
+<a href="#2053" id="2053">2053</a>
+<a href="#2054" id="2054">2054</a>
+<a href="#2055" id="2055">2055</a>
+<a href="#2056" id="2056">2056</a>
+<a href="#2057" id="2057">2057</a>
+<a href="#2058" id="2058">2058</a>
+<a href="#2059" id="2059">2059</a>
+<a href="#2060" id="2060">2060</a>
+<a href="#2061" id="2061">2061</a>
+<a href="#2062" id="2062">2062</a>
+<a href="#2063" id="2063">2063</a>
+<a href="#2064" id="2064">2064</a>
+<a href="#2065" id="2065">2065</a>
+<a href="#2066" id="2066">2066</a>
+<a href="#2067" id="2067">2067</a>
+<a href="#2068" id="2068">2068</a>
+<a href="#2069" id="2069">2069</a>
+<a href="#2070" id="2070">2070</a>
+<a href="#2071" id="2071">2071</a>
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
+<a href="#2087" id="2087">2087</a>
+<a href="#2088" id="2088">2088</a>
+<a href="#2089" id="2089">2089</a>
+<a href="#2090" id="2090">2090</a>
+<a href="#2091" id="2091">2091</a>
+<a href="#2092" id="2092">2092</a>
+<a href="#2093" id="2093">2093</a>
+<a href="#2094" id="2094">2094</a>
+<a href="#2095" id="2095">2095</a>
+<a href="#2096" id="2096">2096</a>
+<a href="#2097" id="2097">2097</a>
+<a href="#2098" id="2098">2098</a>
+<a href="#2099" id="2099">2099</a>
+<a href="#2100" id="2100">2100</a>
+<a href="#2101" id="2101">2101</a>
+<a href="#2102" id="2102">2102</a>
+<a href="#2103" id="2103">2103</a>
+<a href="#2104" id="2104">2104</a>
+<a href="#2105" id="2105">2105</a>
+<a href="#2106" id="2106">2106</a>
+<a href="#2107" id="2107">2107</a>
+<a href="#2108" id="2108">2108</a>
+<a href="#2109" id="2109">2109</a>
+<a href="#2110" id="2110">2110</a>
+<a href="#2111" id="2111">2111</a>
+<a href="#2112" id="2112">2112</a>
+<a href="#2113" id="2113">2113</a>
+<a href="#2114" id="2114">2114</a>
+<a href="#2115" id="2115">2115</a>
+<a href="#2116" id="2116">2116</a>
+<a href="#2117" id="2117">2117</a>
+<a href="#2118" id="2118">2118</a>
+<a href="#2119" id="2119">2119</a>
+<a href="#2120" id="2120">2120</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -2069,7 +2141,7 @@
 <span class="kw">use </span>catalog::table_source::DfTableSourceProvider;
 <span class="kw">use </span>datafusion::common::{DFSchemaRef, OwnedTableReference, <span class="prelude-ty">Result </span><span class="kw">as </span>DfResult};
 <span class="kw">use </span>datafusion::datasource::DefaultTableSource;
-<span class="kw">use </span>datafusion::logical_expr::expr::{AggregateFunction, ScalarFunction, ScalarUDF};
+<span class="kw">use </span>datafusion::logical_expr::expr::{AggregateFunction, Alias, ScalarFunction, ScalarUDF};
 <span class="kw">use </span>datafusion::logical_expr::expr_rewriter::normalize_cols;
 <span class="kw">use </span>datafusion::logical_expr::{
     AggregateFunction <span class="kw">as </span>AggregateFunctionEnum, BinaryExpr, BuiltinScalarFunction, Cast, Extension,
@@ -2092,9 +2164,10 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::error::{
     CatalogSnafu, ColumnNotFoundSnafu, DataFusionPlanningSnafu, ExpectExprSnafu,
-    ExpectRangeSelectorSnafu, MultipleVectorSnafu, <span class="prelude-ty">Result</span>, TableNameNotFoundSnafu,
-    TimeIndexNotFoundSnafu, UnexpectedPlanExprSnafu, UnexpectedTokenSnafu, UnknownTableSnafu,
-    UnsupportedExprSnafu, ValueNotFoundSnafu, ZeroRangeSelectorSnafu,
+    ExpectRangeSelectorSnafu, MultipleMetricMatchersSnafu, MultipleVectorSnafu,
+    NoMetricMatcherSnafu, <span class="prelude-ty">Result</span>, TableNameNotFoundSnafu, TimeIndexNotFoundSnafu,
+    UnexpectedPlanExprSnafu, UnexpectedTokenSnafu, UnknownTableSnafu, UnsupportedExprSnafu,
+    ValueNotFoundSnafu, ZeroRangeSelectorSnafu,
 };
 <span class="kw">use </span><span class="kw">crate</span>::extension_plan::{
     build_special_time_expr, EmptyMetric, InstantManipulate, Millisecond, RangeManipulate,
@@ -2145,6 +2218,16 @@
             ..Default::default()
         }
     }
+
+    <span class="doccomment">/// Reset all planner states
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.table_name = <span class="prelude-val">None</span>;
+        <span class="self">self</span>.time_index_column = <span class="prelude-val">None</span>;
+        <span class="self">self</span>.field_columns = <span class="macro">vec!</span>[];
+        <span class="self">self</span>.tag_columns = <span class="macro">vec!</span>[];
+        <span class="self">self</span>.field_column_matcher = <span class="prelude-val">None</span>;
+        <span class="self">self</span>.range = <span class="prelude-val">None</span>;
+    }
 }
 
 <span class="kw">pub struct </span>PromPlanner {
@@ -2179,11 +2262,7 @@
 
                 <span class="comment">// calculate columns to group by
                 // Need to append time index column into group by columns
-                </span><span class="kw">let </span>group_exprs = modifier
-                    .as_ref()
-                    .map_or(<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[<span class="self">self</span>.create_time_index_column_expr()<span class="question-mark">?</span>]), |m| {
-                        <span class="self">self</span>.agg_modifier_to_col(input.schema(), m)
-                    })<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>group_exprs = <span class="self">self</span>.agg_modifier_to_col(input.schema(), modifier)<span class="question-mark">?</span>;
 
                 <span class="comment">// convert op and value columns to aggregate exprs
                 </span><span class="kw">let </span>aggr_exprs = <span class="self">self</span>.create_aggregate_exprs(<span class="kw-2">*</span>op, <span class="kw-2">&amp;</span>input)<span class="question-mark">?</span>;
@@ -2298,24 +2377,34 @@
                     </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                         <span class="kw">let </span>left_input = <span class="self">self</span>.prom_expr_to_plan(<span class="kw-2">*</span>lhs.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
                         <span class="kw">let </span>left_field_columns = <span class="self">self</span>.ctx.field_columns.clone();
-                        <span class="kw">let </span>left_schema = left_input.schema().clone();
+                        <span class="kw">let </span>left_table_ref: OwnedTableReference =
+                            <span class="self">self</span>.ctx.table_name.clone().unwrap_or_default().into();
 
                         <span class="kw">let </span>right_input = <span class="self">self</span>.prom_expr_to_plan(<span class="kw-2">*</span>rhs.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
                         <span class="kw">let </span>right_field_columns = <span class="self">self</span>.ctx.field_columns.clone();
-                        <span class="kw">let </span>right_schema = right_input.schema().clone();
+                        <span class="kw">let </span>right_table_ref: OwnedTableReference =
+                            <span class="self">self</span>.ctx.table_name.clone().unwrap_or_default().into();
 
-                        <span class="kw">let </span><span class="kw-2">mut </span>field_columns =
+                        <span class="comment">// TODO(ruihang): avoid join if left and right are the same table
+
+                        </span><span class="kw">let </span><span class="kw-2">mut </span>field_columns =
                             left_field_columns.iter().zip(right_field_columns.iter());
-                        <span class="comment">// the new ctx.field_columns for the generated join plan
-                        </span><span class="kw">let </span>join_plan = <span class="self">self</span>.join_on_non_field_columns(left_input, right_input)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>join_plan = <span class="self">self</span>.join_on_non_field_columns(
+                            left_input,
+                            right_input,
+                            left_table_ref.clone(),
+                            right_table_ref.clone(),
+                        )<span class="question-mark">?</span>;
+                        <span class="kw">let </span>join_plan_schema = join_plan.schema().clone();
+
                         <span class="kw">let </span>bin_expr_builder = |<span class="kw">_</span>: <span class="kw-2">&amp;</span>String| {
                             <span class="kw">let </span>(left_col_name, right_col_name) = field_columns.next().unwrap();
-                            <span class="kw">let </span>left_col = left_schema
-                                .field_with_name(<span class="prelude-val">None</span>, left_col_name)
+                            <span class="kw">let </span>left_col = join_plan_schema
+                                .field_with_name(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>left_table_ref), left_col_name)
                                 .context(DataFusionPlanningSnafu)<span class="question-mark">?
                                 </span>.qualified_column();
-                            <span class="kw">let </span>right_col = right_schema
-                                .field_with_name(<span class="prelude-val">None</span>, right_col_name)
+                            <span class="kw">let </span>right_col = join_plan_schema
+                                .field_with_name(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>right_table_ref), right_col_name)
                                 .context(DataFusionPlanningSnafu)<span class="question-mark">?
                                 </span>.qualified_column();
 
@@ -2386,12 +2475,12 @@
                 })
             }
             PromExpr::VectorSelector(VectorSelector {
-                name: <span class="kw">_</span>,
+                name,
                 offset,
                 matchers,
                 at: <span class="kw">_</span>,
             }) =&gt; {
-                <span class="kw">let </span>matchers = <span class="self">self</span>.preprocess_label_matchers(matchers)<span class="question-mark">?</span>;
+                <span class="kw">let </span>matchers = <span class="self">self</span>.preprocess_label_matchers(matchers, name)<span class="question-mark">?</span>;
                 <span class="self">self</span>.setup_context().<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="kw">let </span>normalize = <span class="self">self
                     </span>.selector_to_series_normalize_plan(offset, matchers, <span class="bool-val">false</span>)
@@ -2412,14 +2501,14 @@
                     node: Arc::new(manipulate),
                 })
             }
-            PromExpr::MatrixSelector(MatrixSelector {
-                vector_selector,
-                range,
-            }) =&gt; {
+            PromExpr::MatrixSelector(MatrixSelector { vs, range }) =&gt; {
                 <span class="kw">let </span>VectorSelector {
-                    offset, matchers, ..
-                } = vector_selector;
-                <span class="kw">let </span>matchers = <span class="self">self</span>.preprocess_label_matchers(matchers)<span class="question-mark">?</span>;
+                    name,
+                    offset,
+                    matchers,
+                    ..
+                } = vs;
+                <span class="kw">let </span>matchers = <span class="self">self</span>.preprocess_label_matchers(matchers, name)<span class="question-mark">?</span>;
                 <span class="self">self</span>.setup_context().<span class="kw">await</span><span class="question-mark">?</span>;
 
                 <span class="macro">ensure!</span>(!range.is_zero(), ZeroRangeSelectorSnafu);
@@ -2519,13 +2608,39 @@
 
     <span class="doccomment">/// Extract metric name from `__name__` matcher and set it into [PromPlannerContext].
     /// Returns a new [Matchers] that doesn&#39;t contains metric name matcher.
-    </span><span class="kw">fn </span>preprocess_label_matchers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label_matchers: <span class="kw-2">&amp;</span>Matchers) -&gt; <span class="prelude-ty">Result</span>&lt;Matchers&gt; {
+    ///
+    /// Each call to this function means new selector is started. Thus the context will be reset
+    /// at first.
+    ///
+    /// Name rule:
+    /// - if `name` is some, then the matchers MUST NOT contains `__name__` matcher.
+    /// - if `name` is none, then the matchers MAY contains NONE OR MULTIPLE `__name__` matchers.
+    </span><span class="kw">fn </span>preprocess_label_matchers(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        label_matchers: <span class="kw-2">&amp;</span>Matchers,
+        name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Matchers&gt; {
+        <span class="self">self</span>.ctx.reset();
+        <span class="kw">let </span>metric_name;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name.clone() {
+            metric_name = <span class="prelude-val">Some</span>(name);
+            <span class="macro">ensure!</span>(
+                label_matchers.find_matcher(METRIC_NAME).is_none(),
+                MultipleMetricMatchersSnafu
+            );
+        } <span class="kw">else </span>{
+            metric_name = <span class="prelude-val">Some</span>(
+                label_matchers
+                    .find_matcher(METRIC_NAME)
+                    .context(NoMetricMatcherSnafu)<span class="question-mark">?</span>,
+            );
+        }
+        <span class="self">self</span>.ctx.table_name = metric_name;
+
         <span class="kw">let </span><span class="kw-2">mut </span>matchers = HashSet::new();
         <span class="kw">for </span>matcher <span class="kw">in </span><span class="kw-2">&amp;</span>label_matchers.matchers {
             <span class="comment">// TODO(ruihang): support other metric match ops
-            </span><span class="kw">if </span>matcher.name == METRIC_NAME &amp;&amp; <span class="macro">matches!</span>(matcher.op, MatchOp::Equal) {
-                <span class="self">self</span>.ctx.table_name = <span class="prelude-val">Some</span>(matcher.value.clone());
-            } <span class="kw">else if </span>matcher.name == FIELD_COLUMN_MATCHER {
+            </span><span class="kw">if </span>matcher.name == FIELD_COLUMN_MATCHER {
                 <span class="self">self</span>.ctx
                     .field_column_matcher
                     .get_or_insert_default()
@@ -2534,6 +2649,7 @@
                 <span class="kw">let _ </span>= matchers.insert(matcher.clone());
             }
         }
+        <span class="kw">let </span>matchers = matchers.into_iter().collect();
         <span class="prelude-val">Ok</span>(Matchers { matchers })
     }
 
@@ -2624,11 +2740,18 @@
                 <span class="kw">let _ </span>= result_set.remove(<span class="kw-2">&amp;</span>col);
             }
 
-            <span class="self">self</span>.ctx.field_columns = result_set.iter().cloned().collect();
+            <span class="comment">// mask the field columns in context using computed result set
+            </span><span class="self">self</span>.ctx.field_columns = <span class="self">self
+                </span>.ctx
+                .field_columns
+                .drain(..)
+                .filter(|col| result_set.contains(col))
+                .collect();
+
             <span class="kw">let </span>exprs = result_set
                 .into_iter()
                 .map(|col| DfExpr::Column(col.into()))
-                .chain(<span class="self">self</span>.create_tag_column_exprs()<span class="question-mark">?</span>.into_iter())
+                .chain(<span class="self">self</span>.create_tag_column_exprs()<span class="question-mark">?</span>)
                 .chain(<span class="prelude-val">Some</span>(<span class="self">self</span>.create_time_index_column_expr()<span class="question-mark">?</span>))
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             <span class="comment">// reuse this variable for simplicity
@@ -2684,12 +2807,16 @@
     </span><span class="kw">fn </span>agg_modifier_to_col(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input_schema: <span class="kw-2">&amp;</span>DFSchemaRef,
-        modifier: <span class="kw-2">&amp;</span>LabelModifier,
+        modifier: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;LabelModifier&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;DfExpr&gt;&gt; {
         <span class="kw">match </span>modifier {
-            LabelModifier::Include(labels) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>exprs = Vec::with_capacity(labels.len());
-                <span class="kw">for </span>label <span class="kw">in </span>labels {
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="self">self</span>.ctx.tag_columns = <span class="macro">vec!</span>[];
+                <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[<span class="self">self</span>.create_time_index_column_expr()<span class="question-mark">?</span>])
+            }
+            <span class="prelude-val">Some</span>(LabelModifier::Include(labels)) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>exprs = Vec::with_capacity(labels.labels.len());
+                <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span>labels.labels {
                     <span class="comment">// nonexistence label will be ignored
                     </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(field) = input_schema.field_with_unqualified_name(label) {
                         exprs.push(DfExpr::Column(Column::from(field.name())));
@@ -2697,14 +2824,14 @@
                 }
 
                 <span class="comment">// change the tag columns in context
-                </span><span class="self">self</span>.ctx.tag_columns = labels.iter().cloned().collect();
+                </span><span class="self">self</span>.ctx.tag_columns = labels.labels.clone();
 
                 <span class="comment">// add timestamp column
                 </span>exprs.push(<span class="self">self</span>.create_time_index_column_expr()<span class="question-mark">?</span>);
 
                 <span class="prelude-val">Ok</span>(exprs)
             }
-            LabelModifier::Exclude(labels) =&gt; {
+            <span class="prelude-val">Some</span>(LabelModifier::Exclude(labels)) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>all_fields = input_schema
                     .fields()
                     .iter()
@@ -2713,7 +2840,7 @@
 
                 <span class="comment">// remove &quot;without&quot;-ed fields
                 // nonexistence label will be ignored
-                </span><span class="kw">for </span>label <span class="kw">in </span>labels {
+                </span><span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span>labels.labels {
                     <span class="kw">let _ </span>= all_fields.remove(label);
                 }
 
@@ -3064,7 +3191,7 @@
             exprs.push(expr);
         }
 
-        utils::conjunction(exprs.into_iter()).context(ValueNotFoundSnafu {
+        utils::conjunction(exprs).context(ValueNotFoundSnafu {
             table: <span class="self">self</span>.ctx.table_name.clone().unwrap(),
         })
     }
@@ -3228,6 +3355,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         left: LogicalPlan,
         right: LogicalPlan,
+        left_table_ref: OwnedTableReference,
+        right_table_ref: OwnedTableReference,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LogicalPlan&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>tag_columns = <span class="self">self
             </span>.ctx
@@ -3241,9 +3370,17 @@
             tag_columns.push(Column::from_name(time_index_column));
         }
 
+        <span class="kw">let </span>right = LogicalPlanBuilder::from(right)
+            .alias(right_table_ref)
+            .context(DataFusionPlanningSnafu)<span class="question-mark">?
+            </span>.build()
+            .context(DataFusionPlanningSnafu)<span class="question-mark">?</span>;
+
         <span class="comment">// Inner Join on time index column to concat two operator
         </span>LogicalPlanBuilder::from(left)
-            .join(
+            .alias(left_table_ref)
+            .context(DataFusionPlanningSnafu)<span class="question-mark">?
+            </span>.join(
                 right,
                 JoinType::Inner,
                 (tag_columns.clone(), tag_columns),
@@ -3298,7 +3435,7 @@
         <span class="kw">let </span>field_columns_iter = result_field_columns
             .into_iter()
             .zip(<span class="self">self</span>.ctx.field_columns.iter())
-            .map(|(expr, name)| <span class="prelude-val">Ok</span>(DfExpr::Alias(Box::new(expr), name.to_string())));
+            .map(|(expr, name)| <span class="prelude-val">Ok</span>(DfExpr::Alias(Alias::new(expr, name.to_string()))));
 
         <span class="comment">// chain non-value columns (unchanged) and value columns (applied computation then alias)
         </span><span class="kw">let </span>project_fields = non_field_columns_iter
@@ -3358,11 +3495,12 @@
 </span><span class="kw">mod </span>test {
     <span class="kw">use </span>std::time::{Duration, UNIX_EPOCH};
 
-    <span class="kw">use </span>catalog::local::MemoryCatalogManager;
-    <span class="kw">use </span>catalog::{CatalogManager, RegisterTableRequest};
+    <span class="kw">use </span>catalog::memory::MemoryCatalogManager;
+    <span class="kw">use </span>catalog::RegisterTableRequest;
     <span class="kw">use </span>common_catalog::consts::{DEFAULT_CATALOG_NAME, DEFAULT_SCHEMA_NAME};
     <span class="kw">use </span>datatypes::prelude::ConcreteDataType;
     <span class="kw">use </span>datatypes::schema::{ColumnSchema, Schema};
+    <span class="kw">use </span>promql_parser::label::Labels;
     <span class="kw">use </span>promql_parser::parser;
     <span class="kw">use </span>session::context::QueryContext;
     <span class="kw">use </span>table::metadata::{TableInfoBuilder, TableMetaBuilder};
@@ -3411,18 +3549,17 @@
             .meta(table_meta)
             .build()
             .unwrap();
-        <span class="kw">let </span>table = Arc::new(EmptyTable::from_table_info(<span class="kw-2">&amp;</span>table_info));
-        <span class="kw">let </span>catalog_list = Arc::new(MemoryCatalogManager::default());
+        <span class="kw">let </span>table = EmptyTable::from_table_info(<span class="kw-2">&amp;</span>table_info);
+        <span class="kw">let </span>catalog_list = MemoryCatalogManager::with_default_setup();
         <span class="macro">assert!</span>(catalog_list
-            .register_table(RegisterTableRequest {
+            .register_table_sync(RegisterTableRequest {
                 catalog: DEFAULT_CATALOG_NAME.to_string(),
                 schema: DEFAULT_SCHEMA_NAME.to_string(),
                 table_name,
                 table_id: <span class="number">1024</span>,
                 table,
             })
-            .<span class="kw">await
-            </span>.is_ok());
+            .is_ok());
         DfTableSourceProvider::new(catalog_list, <span class="bool-val">false</span>, QueryContext::arc().as_ref())
     }
 
@@ -3663,7 +3800,7 @@
         <span class="kw">let </span>plan = PromPlanner::stmt_to_plan(table_provider, eval_stmt.clone())
             .<span class="kw">await
             </span>.unwrap();
-        <span class="kw">let  </span>expected_no_without = String::from(
+        <span class="kw">let </span>expected_no_without = String::from(
             <span class="string">&quot;Sort: some_metric.tag_1 ASC NULLS LAST, some_metric.timestamp ASC NULLS LAST [tag_1:Utf8, timestamp:Timestamp(Millisecond, None), TEMPLATE(some_metric.field_0):Float64;N, TEMPLATE(some_metric.field_1):Float64;N]\
             \n  Aggregate: groupBy=[[some_metric.tag_1, some_metric.timestamp]], aggr=[[TEMPLATE(some_metric.field_0), TEMPLATE(some_metric.field_1)]] [tag_1:Utf8, timestamp:Timestamp(Millisecond, None), TEMPLATE(some_metric.field_0):Float64;N, TEMPLATE(some_metric.field_1):Float64;N]\
             \n    PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, tag_1:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N, field_1:Float64;N]\
@@ -3680,15 +3817,15 @@
 
         <span class="comment">// test group without
         </span><span class="kw">if let </span>PromExpr::Aggregate(AggregateExpr { modifier, .. }) = <span class="kw-2">&amp;mut </span>eval_stmt.expr {
-            <span class="kw-2">*</span>modifier = <span class="prelude-val">Some</span>(LabelModifier::Exclude(
-                <span class="macro">vec!</span>[String::from(<span class="string">&quot;tag_1&quot;</span>)].into_iter().collect(),
-            ));
+            <span class="kw-2">*</span>modifier = <span class="prelude-val">Some</span>(LabelModifier::Exclude(Labels {
+                labels: <span class="macro">vec!</span>[String::from(<span class="string">&quot;tag_1&quot;</span>)].into_iter().collect(),
+            }));
         }
         <span class="kw">let </span>table_provider = build_test_table_provider(<span class="string">&quot;some_metric&quot;</span>.to_string(), <span class="number">2</span>, <span class="number">2</span>).<span class="kw">await</span>;
         <span class="kw">let </span>plan = PromPlanner::stmt_to_plan(table_provider, eval_stmt)
             .<span class="kw">await
             </span>.unwrap();
-        <span class="kw">let  </span>expected_without = String::from(
+        <span class="kw">let </span>expected_without = String::from(
             <span class="string">&quot;Sort: some_metric.tag_0 ASC NULLS LAST, some_metric.timestamp ASC NULLS LAST [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), TEMPLATE(some_metric.field_0):Float64;N, TEMPLATE(some_metric.field_1):Float64;N]\
             \n  Aggregate: groupBy=[[some_metric.tag_0, some_metric.timestamp]], aggr=[[TEMPLATE(some_metric.field_0), TEMPLATE(some_metric.field_1)]] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), TEMPLATE(some_metric.field_0):Float64;N, TEMPLATE(some_metric.field_1):Float64;N]\
             \n    PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, tag_1:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N, field_1:Float64;N]\
@@ -3812,18 +3949,20 @@
         <span class="kw">let  </span>expected = String::from(
             <span class="string">&quot;Projection: some_metric.tag_0, some_metric.timestamp, some_metric.field_0 + some_metric.field_0 AS some_metric.field_0 + some_metric.field_0 [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), some_metric.field_0 + some_metric.field_0:Float64;N]\
             \n  Inner Join: some_metric.tag_0 = some_metric.tag_0, some_metric.timestamp = some_metric.timestamp [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N, tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n    PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n      PromSeriesNormalize: offset=[0], time index=[timestamp], filter NaN: [false] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n        PromSeriesDivide: tags=[\&quot;tag_0\&quot;] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n          Sort: some_metric.tag_0 DESC NULLS LAST, some_metric.timestamp DESC NULLS LAST [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n            Filter: some_metric.tag_0 = Utf8(\&quot;foo\&quot;) [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n              TableScan: some_metric, unsupported_filters=[tag_0 = Utf8(\&quot;foo\&quot;), timestamp &gt;= TimestampMillisecond(-1000, None), timestamp &lt;= TimestampMillisecond(100001000, None)] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n    PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n      PromSeriesNormalize: offset=[0], time index=[timestamp], filter NaN: [false] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n        PromSeriesDivide: tags=[\&quot;tag_0\&quot;] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n          Sort: some_metric.tag_0 DESC NULLS LAST, some_metric.timestamp DESC NULLS LAST [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n            Filter: some_metric.tag_0 = Utf8(\&quot;bar\&quot;) [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
-            \n              TableScan: some_metric, unsupported_filters=[tag_0 = Utf8(\&quot;bar\&quot;), timestamp &gt;= TimestampMillisecond(-1000, None), timestamp &lt;= TimestampMillisecond(100001000, None)] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]&quot;
+            \n    SubqueryAlias: some_metric [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n      PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n        PromSeriesNormalize: offset=[0], time index=[timestamp], filter NaN: [false] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n          PromSeriesDivide: tags=[\&quot;tag_0\&quot;] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n            Sort: some_metric.tag_0 DESC NULLS LAST, some_metric.timestamp DESC NULLS LAST [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n              Filter: some_metric.tag_0 = Utf8(\&quot;foo\&quot;) [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n                TableScan: some_metric, unsupported_filters=[tag_0 = Utf8(\&quot;foo\&quot;), timestamp &gt;= TimestampMillisecond(-1000, None), timestamp &lt;= TimestampMillisecond(100001000, None)] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n    SubqueryAlias: some_metric [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n      PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n        PromSeriesNormalize: offset=[0], time index=[timestamp], filter NaN: [false] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n          PromSeriesDivide: tags=[\&quot;tag_0\&quot;] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n            Sort: some_metric.tag_0 DESC NULLS LAST, some_metric.timestamp DESC NULLS LAST [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n              Filter: some_metric.tag_0 = Utf8(\&quot;bar\&quot;) [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n                TableScan: some_metric, unsupported_filters=[tag_0 = Utf8(\&quot;bar\&quot;), timestamp &gt;= TimestampMillisecond(-1000, None), timestamp &lt;= TimestampMillisecond(100001000, None)] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]&quot;
         </span>);
 
         <span class="macro">assert_eq!</span>(plan.display_indent_schema().to_string(), expected);
@@ -3866,10 +4005,9 @@
     }
 
     <span class="attr">#[tokio::test]
-    #[ignore = <span class="string">&quot;pure literal arithmetic is not supported yet&quot;</span>]
     </span><span class="kw">async fn </span>binary_op_literal_literal() {
         <span class="kw">let </span>query = <span class="string">r#&quot;1 + 1&quot;#</span>;
-        <span class="kw">let </span>expected = String::from(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>expected = String::from(<span class="string">&quot;EmptyMetric: range=[0..100000000], interval=[5000] [time:Timestamp(Millisecond, None), value:Float64;N]&quot;</span>);
 
         indie_query_plan_compare(query, expected).<span class="kw">await</span>;
     }
@@ -3890,10 +4028,16 @@
     }
 
     <span class="attr">#[tokio::test]
-    #[ignore = <span class="string">&quot;pure literal arithmetic is not supported yet&quot;</span>]
     </span><span class="kw">async fn </span>bool_with_additional_arithmetic() {
         <span class="kw">let </span>query = <span class="string">&quot;some_metric + (1 == bool 2)&quot;</span>;
-        <span class="kw">let </span>expected = String::from(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>expected = String::from(
+            <span class="string">&quot;Projection: some_metric.tag_0, some_metric.timestamp, some_metric.field_0 + CAST(Float64(1) = Float64(2) AS Float64) AS field_0 + Float64(1) = Float64(2) [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0 + Float64(1) = Float64(2):Float64;N]\
+            \n  PromInstantManipulate: range=[0..100000000], lookback=[1000], interval=[5000], time index=[timestamp] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n    PromSeriesNormalize: offset=[0], time index=[timestamp], filter NaN: [false] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n      PromSeriesDivide: tags=[\&quot;tag_0\&quot;] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n        Sort: some_metric.tag_0 DESC NULLS LAST, some_metric.timestamp DESC NULLS LAST [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]\
+            \n          TableScan: some_metric, unsupported_filters=[timestamp &gt;= TimestampMillisecond(-1000, None), timestamp &lt;= TimestampMillisecond(100001000, None)] [tag_0:Utf8, timestamp:Timestamp(Millisecond, None), field_0:Float64;N]&quot;
+        </span>);
 
         indie_query_plan_compare(query, expected).<span class="kw">await</span>;
     }

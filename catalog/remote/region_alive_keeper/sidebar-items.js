@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["BRANCHES"],"enum":["CountdownCommand"],"static":["CALLSITE"],"struct":["CountdownTask","CountdownTaskHandle","RegionAliveKeeper","RegionAliveKeepers"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"static":["CALLSITE"],"struct":["MigrateTableMetadata","UpgradeCommand"]};
+window.SIDEBAR_ITEMS = {"constant":["PAGE_SIZE"],"mod":["v1_helper"],"struct":["MigrateTableMetadata","UpgradeCommand"]};

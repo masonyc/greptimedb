@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/common/meta/src/rpc/ddl.rs`."><title>ddl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="common_meta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../common_meta/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/common/meta/src/rpc/ddl.rs`."><title>ddl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="common_meta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../common_meta/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -438,6 +438,16 @@
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -505,8 +515,18 @@
         DdlTask::AlterTable(AlterTableTask { alter_table })
     }
 
-    <span class="kw">pub fn </span>new_truncate_table(truncate_table: TruncateTableExpr) -&gt; <span class="self">Self </span>{
-        DdlTask::TruncateTable(TruncateTableTask { truncate_table })
+    <span class="kw">pub fn </span>new_truncate_table(
+        catalog: String,
+        schema: String,
+        table: String,
+        table_id: TableId,
+    ) -&gt; <span class="self">Self </span>{
+        DdlTask::TruncateTable(TruncateTableTask {
+            catalog,
+            schema,
+            table,
+            table_id,
+        })
     }
 }
 
@@ -552,7 +572,12 @@
                 alter_table: <span class="prelude-val">Some</span>(task.alter_table),
             }),
             DdlTask::TruncateTable(task) =&gt; Task::TruncateTableTask(PbTruncateTableTask {
-                truncate_table: <span class="prelude-val">Some</span>(task.truncate_table),
+                truncate_table: <span class="prelude-val">Some</span>(TruncateTableExpr {
+                    catalog_name: task.catalog,
+                    schema_name: task.schema,
+                    table_name: task.table,
+                    table_id: <span class="prelude-val">Some</span>(api::v1::TableId { id: task.table_id }),
+                }),
             }),
         };
 
@@ -563,7 +588,8 @@
     }
 }
 
-<span class="kw">pub struct </span>SubmitDdlTaskResponse {
+<span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>SubmitDdlTaskResponse {
     <span class="kw">pub </span>key: Vec&lt;u8&gt;,
     <span class="kw">pub </span>table_id: <span class="prelude-ty">Option</span>&lt;TableId&gt;,
 }
@@ -577,6 +603,18 @@
             key: resp.key,
             table_id,
         })
+    }
+}
+
+<span class="kw">impl </span>From&lt;SubmitDdlTaskResponse&gt; <span class="kw">for </span>PbSubmitDdlTaskResponse {
+    <span class="kw">fn </span>from(val: SubmitDdlTaskResponse) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            key: val.key,
+            table_id: val
+                .table_id
+                .map(|table_id| api::v1::meta::TableId { id: table_id }),
+            ..Default::default()
+        }
     }
 }
 
@@ -785,27 +823,28 @@
     }
 }
 
-<span class="attr">#[derive(Debug, PartialEq)]
+<span class="attr">#[derive(Debug, PartialEq, Serialize, Deserialize)]
 </span><span class="kw">pub struct </span>TruncateTableTask {
-    <span class="kw">pub </span>truncate_table: TruncateTableExpr,
+    <span class="kw">pub </span>catalog: String,
+    <span class="kw">pub </span>schema: String,
+    <span class="kw">pub </span>table: String,
+    <span class="kw">pub </span>table_id: TableId,
 }
 
 <span class="kw">impl </span>TruncateTableTask {
     <span class="kw">pub fn </span>table_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TableReference {
         TableReference {
-            catalog: <span class="kw-2">&amp;</span><span class="self">self</span>.truncate_table.catalog_name,
-            schema: <span class="kw-2">&amp;</span><span class="self">self</span>.truncate_table.schema_name,
-            table: <span class="kw-2">&amp;</span><span class="self">self</span>.truncate_table.table_name,
+            catalog: <span class="kw-2">&amp;</span><span class="self">self</span>.catalog,
+            schema: <span class="kw-2">&amp;</span><span class="self">self</span>.schema,
+            table: <span class="kw-2">&amp;</span><span class="self">self</span>.table,
         }
     }
 
     <span class="kw">pub fn </span>table_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TableName {
-        <span class="kw">let </span>table = <span class="kw-2">&amp;</span><span class="self">self</span>.truncate_table;
-
         TableName {
-            catalog_name: table.catalog_name.to_string(),
-            schema_name: table.schema_name.to_string(),
-            table_name: table.table_name.to_string(),
+            catalog_name: <span class="self">self</span>.catalog.to_string(),
+            schema_name: <span class="self">self</span>.schema.to_string(),
+            table_name: <span class="self">self</span>.table.to_string(),
         }
     }
 }
@@ -815,39 +854,20 @@
 
     <span class="kw">fn </span>try_from(pb: PbTruncateTableTask) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>truncate_table = pb.truncate_table.context(error::InvalidProtoMsgSnafu {
-            err_msg: <span class="string">&quot;expected truncate_table&quot;</span>,
+            err_msg: <span class="string">&quot;expected drop table&quot;</span>,
         })<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(TruncateTableTask { truncate_table })
-    }
-}
-
-<span class="kw">impl </span>Serialize <span class="kw">for </span>TruncateTableTask {
-    <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; result::Result&lt;S::Ok, S::Error&gt;
-    <span class="kw">where
-        </span>S: serde::Serializer,
-    {
-        <span class="kw">let </span>pb = PbTruncateTableTask {
-            truncate_table: <span class="prelude-val">Some</span>(<span class="self">self</span>.truncate_table.clone()),
-        };
-        <span class="kw">let </span>buf = pb.encode_to_vec();
-        serializer.serialize_bytes(<span class="kw-2">&amp;</span>buf)
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TruncateTableTask {
-    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; result::Result&lt;<span class="self">Self</span>, D::Error&gt;
-    <span class="kw">where
-        </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
-    {
-        <span class="kw">let </span>buf = Vec::&lt;u8&gt;::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="kw">let </span>task: PbTruncateTableTask = PbTruncateTableTask::decode(<span class="kw-2">&amp;*</span>buf)
-            .map_err(|err| serde::de::Error::custom(err.to_string()))<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>task = TruncateTableTask::try_from(task)
-            .map_err(|err| serde::de::Error::custom(err.to_string()))<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(task)
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            catalog: truncate_table.catalog_name,
+            schema: truncate_table.schema_name,
+            table: truncate_table.table_name,
+            table_id: truncate_table
+                .table_id
+                .context(error::InvalidProtoMsgSnafu {
+                    err_msg: <span class="string">&quot;expected table_id&quot;</span>,
+                })<span class="question-mark">?
+                </span>.id,
+        })
     }
 }
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests-integration/src/cluster.rs`."><title>cluster.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tests_integration" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tests_integration/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests-integration/src/cluster.rs`."><title>cluster.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tests_integration" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tests_integration/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -318,10 +318,6 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -344,39 +340,36 @@
 <span class="kw">use </span>client::client_manager::DatanodeClients;
 <span class="kw">use </span>client::Client;
 <span class="kw">use </span>common_base::Plugins;
-<span class="kw">use </span>common_grpc::channel_manager::ChannelManager;
+<span class="kw">use </span>common_grpc::channel_manager::{ChannelConfig, ChannelManager};
 <span class="kw">use </span>common_meta::peer::Peer;
 <span class="kw">use </span>common_meta::DatanodeId;
 <span class="kw">use </span>common_runtime::Builder <span class="kw">as </span>RuntimeBuilder;
 <span class="kw">use </span>common_test_util::temp_dir::create_temp_dir;
-<span class="kw">use </span>datanode::datanode::{DatanodeOptions, ObjectStoreConfig, ProcedureConfig};
-<span class="kw">use </span>datanode::heartbeat::HeartbeatTask;
-<span class="kw">use </span>datanode::instance::Instance <span class="kw">as </span>DatanodeInstance;
+<span class="kw">use </span>datanode::config::{DatanodeOptions, ObjectStoreConfig};
+<span class="kw">use </span>datanode::datanode::{Datanode, DatanodeBuilder, ProcedureConfig};
 <span class="kw">use </span>frontend::frontend::FrontendOptions;
 <span class="kw">use </span>frontend::instance::{FrontendInstance, Instance <span class="kw">as </span>FeInstance};
 <span class="kw">use </span>meta_client::client::MetaClientBuilder;
 <span class="kw">use </span>meta_srv::cluster::MetaPeerClientRef;
-<span class="kw">use </span>meta_srv::metadata_service::{DefaultMetadataService, MetadataService};
 <span class="kw">use </span>meta_srv::metasrv::{MetaSrv, MetaSrvOptions};
 <span class="kw">use </span>meta_srv::mocks::MockInfo;
 <span class="kw">use </span>meta_srv::service::store::kv::KvStoreRef;
 <span class="kw">use </span>meta_srv::service::store::memory::MemStore;
 <span class="kw">use </span>servers::grpc::GrpcServer;
-<span class="kw">use </span>servers::query_handler::grpc::ServerGrpcQueryHandlerAdaptor;
 <span class="kw">use </span>servers::Mode;
 <span class="kw">use </span>tonic::transport::Server;
 <span class="kw">use </span>tower::service_fn;
 
 <span class="kw">use </span><span class="kw">crate</span>::test_util::{
-    create_datanode_opts, create_tmp_dir_and_datanode_opts, StorageGuard, StorageType, WalGuard,
+    <span class="self">self</span>, create_datanode_opts, create_tmp_dir_and_datanode_opts, FileDirGuard, StorageGuard,
+    StorageType,
 };
 
 <span class="kw">pub struct </span>GreptimeDbCluster {
     <span class="kw">pub </span>storage_guards: Vec&lt;StorageGuard&gt;,
-    _wal_guards: Vec&lt;WalGuard&gt;,
+    <span class="kw">pub </span>_dir_guards: Vec&lt;FileDirGuard&gt;,
 
-    <span class="kw">pub </span>datanode_instances: HashMap&lt;DatanodeId, Arc&lt;DatanodeInstance&gt;&gt;,
-    <span class="kw">pub </span>datanode_heartbeat_tasks: HashMap&lt;DatanodeId, <span class="prelude-ty">Option</span>&lt;HeartbeatTask&gt;&gt;,
+    <span class="kw">pub </span>datanode_instances: HashMap&lt;DatanodeId, Datanode&gt;,
     <span class="kw">pub </span>kv_store: KvStoreRef,
     <span class="kw">pub </span>meta_srv: MetaSrv,
     <span class="kw">pub </span>frontend: Arc&lt;FeInstance&gt;,
@@ -412,11 +405,12 @@
     <span class="kw">pub async fn </span>build(<span class="self">self</span>) -&gt; GreptimeDbCluster {
         <span class="kw">let </span>datanodes = <span class="self">self</span>.datanodes.unwrap_or(<span class="number">4</span>);
 
-        <span class="kw">let </span>datanode_clients = Arc::new(DatanodeClients::default());
+        <span class="kw">let </span>channel_config = ChannelConfig::new().timeout(Duration::from_secs(<span class="number">20</span>));
+        <span class="kw">let </span>datanode_clients = Arc::new(DatanodeClients::new(channel_config));
 
         <span class="kw">let </span>meta_srv = <span class="self">self</span>.build_metasrv(datanode_clients.clone()).<span class="kw">await</span>;
 
-        <span class="kw">let </span>(datanode_instances, heartbeat_tasks, storage_guards, wal_guards) =
+        <span class="kw">let </span>(datanode_instances, storage_guards, dir_guards) =
             <span class="self">self</span>.build_datanodes(meta_srv.clone(), datanodes).<span class="kw">await</span>;
 
         build_datanode_clients(datanode_clients.clone(), <span class="kw-2">&amp;</span>datanode_instances, datanodes).<span class="kw">await</span>;
@@ -428,13 +422,14 @@
             </span>.build_frontend(meta_srv.clone(), datanode_clients)
             .<span class="kw">await</span>;
 
+        test_util::prepare_another_catalog_and_schema(frontend.as_ref()).<span class="kw">await</span>;
+
         frontend.start().<span class="kw">await</span>.unwrap();
 
         GreptimeDbCluster {
             storage_guards,
-            _wal_guards: wal_guards,
+            _dir_guards: dir_guards,
             datanode_instances,
-            datanode_heartbeat_tasks: heartbeat_tasks,
             kv_store: <span class="self">self</span>.kv_store.clone(),
             meta_srv: meta_srv.meta_srv,
             frontend,
@@ -452,42 +447,32 @@
             ..Default::default()
         };
 
-        <span class="kw">let </span>mock =
-            meta_srv::mocks::mock(opt, <span class="self">self</span>.kv_store.clone(), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(datanode_clients)).<span class="kw">await</span>;
-
-        <span class="kw">let </span>metadata_service = DefaultMetadataService::new(mock.meta_srv.kv_store().clone());
-        metadata_service
-            .create_schema(<span class="string">&quot;another_catalog&quot;</span>, <span class="string">&quot;another_schema&quot;</span>, <span class="bool-val">true</span>)
-            .<span class="kw">await
-            </span>.unwrap();
-
-        mock
-    }
+        meta_srv::mocks::mock(opt, <span class="self">self</span>.kv_store.clone(), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(datanode_clients)).<span class="kw">await
+    </span>}
 
     <span class="kw">async fn </span>build_datanodes(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         meta_srv: MockInfo,
         datanodes: u32,
     ) -&gt; (
-        HashMap&lt;DatanodeId, Arc&lt;DatanodeInstance&gt;&gt;,
-        HashMap&lt;DatanodeId, <span class="prelude-ty">Option</span>&lt;HeartbeatTask&gt;&gt;,
+        HashMap&lt;DatanodeId, Datanode&gt;,
         Vec&lt;StorageGuard&gt;,
-        Vec&lt;WalGuard&gt;,
+        Vec&lt;FileDirGuard&gt;,
     ) {
         <span class="kw">let </span><span class="kw-2">mut </span>instances = HashMap::with_capacity(datanodes <span class="kw">as </span>usize);
-        <span class="kw">let </span><span class="kw-2">mut </span>heartbeat_tasks = HashMap::with_capacity(datanodes <span class="kw">as </span>usize);
         <span class="kw">let </span><span class="kw-2">mut </span>storage_guards = Vec::with_capacity(datanodes <span class="kw">as </span>usize);
-        <span class="kw">let </span><span class="kw-2">mut </span>wal_guards = Vec::with_capacity(datanodes <span class="kw">as </span>usize);
+        <span class="kw">let </span><span class="kw-2">mut </span>dir_guards = Vec::with_capacity(datanodes <span class="kw">as </span>usize);
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..datanodes {
             <span class="kw">let </span>datanode_id = i <span class="kw">as </span>u64 + <span class="number">1</span>;
 
             <span class="kw">let </span><span class="kw-2">mut </span>opts = <span class="kw">if let </span><span class="prelude-val">Some</span>(store_config) = <span class="kw-2">&amp;</span><span class="self">self</span>.store_config {
-                <span class="kw">let </span>wal_tmp_dir = create_temp_dir(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;gt_wal_{}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cluster_name));
-                <span class="kw">let </span>wal_dir = wal_tmp_dir.path().to_str().unwrap().to_string();
-                wal_guards.push(WalGuard(wal_tmp_dir));
+                <span class="kw">let </span>home_tmp_dir = create_temp_dir(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;gt_home_{}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cluster_name));
+                <span class="kw">let </span>home_dir = home_tmp_dir.path().to_str().unwrap().to_string();
 
-                create_datanode_opts(store_config.clone(), wal_dir)
+                dir_guards.push(FileDirGuard::new(home_tmp_dir));
+
+                create_datanode_opts(store_config.clone(), home_dir)
             } <span class="kw">else </span>{
                 <span class="kw">let </span>(opts, guard) = create_tmp_dir_and_datanode_opts(
                     StorageType::File,
@@ -495,19 +480,18 @@
                 );
 
                 storage_guards.push(guard.storage_guard);
-                wal_guards.push(guard.wal_guard);
+                dir_guards.push(guard.home_guard);
 
                 opts
             };
             opts.node_id = <span class="prelude-val">Some</span>(datanode_id);
             opts.mode = Mode::Distributed;
 
-            <span class="kw">let </span>dn_instance = <span class="self">self</span>.create_datanode(<span class="kw-2">&amp;</span>opts, meta_srv.clone()).<span class="kw">await</span>;
+            <span class="kw">let </span>datanode = <span class="self">self</span>.create_datanode(opts, meta_srv.clone()).<span class="kw">await</span>;
 
-            <span class="kw">let _ </span>= instances.insert(datanode_id, dn_instance.<span class="number">0</span>.clone());
-            <span class="kw">let _ </span>= heartbeat_tasks.insert(datanode_id, dn_instance.<span class="number">1</span>);
+            instances.insert(datanode_id, datanode);
         }
-        (instances, heartbeat_tasks, storage_guards, wal_guards)
+        (instances, storage_guards, dir_guards)
     }
 
     <span class="kw">async fn </span>wait_datanodes_alive(
@@ -529,19 +513,24 @@
         <span class="macro">panic!</span>(<span class="string">&quot;Some Datanodes are not alive in 10 seconds!&quot;</span>)
     }
 
-    <span class="kw">async fn </span>create_datanode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        opts: <span class="kw-2">&amp;</span>DatanodeOptions,
-        meta_srv: MockInfo,
-    ) -&gt; (Arc&lt;DatanodeInstance&gt;, <span class="prelude-ty">Option</span>&lt;HeartbeatTask&gt;) {
-        <span class="kw">let </span>(instance, heartbeat) = DatanodeInstance::with_mock_meta_server(opts, meta_srv)
+    <span class="kw">async fn </span>create_datanode(<span class="kw-2">&amp;</span><span class="self">self</span>, opts: DatanodeOptions, meta_srv: MockInfo) -&gt; Datanode {
+        <span class="kw">let </span><span class="kw-2">mut </span>meta_client = MetaClientBuilder::new(<span class="number">1000</span>, opts.node_id.unwrap(), Role::Datanode)
+            .enable_router()
+            .enable_store()
+            .enable_heartbeat()
+            .channel_manager(meta_srv.channel_manager)
+            .build();
+        meta_client.start(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>meta_srv.server_addr]).<span class="kw">await</span>.unwrap();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>datanode = DatanodeBuilder::new(opts, <span class="prelude-val">None</span>, Arc::new(Plugins::default()))
+            .with_meta_client(meta_client)
+            .build()
             .<span class="kw">await
             </span>.unwrap();
-        instance.start().<span class="kw">await</span>.unwrap();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(heartbeat) = heartbeat.as_ref() {
-            heartbeat.start().<span class="kw">await</span>.unwrap();
-        }
-        (instance, heartbeat)
+
+        datanode.start_heartbeat().<span class="kw">await</span>.unwrap();
+
+        datanode
     }
 
     <span class="kw">async fn </span>build_frontend(
@@ -576,12 +565,12 @@
 
 <span class="kw">async fn </span>build_datanode_clients(
     clients: Arc&lt;DatanodeClients&gt;,
-    instances: <span class="kw-2">&amp;</span>HashMap&lt;DatanodeId, Arc&lt;DatanodeInstance&gt;&gt;,
+    instances: <span class="kw-2">&amp;</span>HashMap&lt;DatanodeId, Datanode&gt;,
     datanodes: u32,
 ) {
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..datanodes {
         <span class="kw">let </span>datanode_id = i <span class="kw">as </span>u64 + <span class="number">1</span>;
-        <span class="kw">let </span>instance = instances.get(<span class="kw-2">&amp;</span>datanode_id).cloned().unwrap();
+        <span class="kw">let </span>instance = instances.get(<span class="kw-2">&amp;</span>datanode_id).unwrap();
         <span class="kw">let </span>(addr, client) = create_datanode_client(instance).<span class="kw">await</span>;
         clients
             .insert_client(Peer::new(datanode_id, addr), client)
@@ -589,7 +578,7 @@
     }
 }
 
-<span class="kw">async fn </span>create_datanode_client(datanode_instance: Arc&lt;DatanodeInstance&gt;) -&gt; (String, Client) {
+<span class="kw">async fn </span>create_datanode_client(datanode: <span class="kw-2">&amp;</span>Datanode) -&gt; (String, Client) {
     <span class="kw">let </span>(client, server) = tokio::io::duplex(<span class="number">1024</span>);
 
     <span class="kw">let </span>runtime = Arc::new(
@@ -600,18 +589,21 @@
             .unwrap(),
     );
 
-    <span class="comment">// create a mock datanode grpc service, see example here:
-    // https://github.com/hyperium/tonic/blob/master/examples/src/mock/mock.rs
-    </span><span class="kw">let </span>grpc_server = GrpcServer::new(
-        ServerGrpcQueryHandlerAdaptor::arc(datanode_instance),
+    <span class="kw">let </span>flight_handler = <span class="prelude-val">Some</span>(Arc::new(datanode.region_server()) <span class="kw">as _</span>);
+    <span class="kw">let </span>region_server_handler = <span class="prelude-val">Some</span>(Arc::new(datanode.region_server()) <span class="kw">as _</span>);
+    <span class="kw">let </span>grpc_server = GrpcServer::new(
         <span class="prelude-val">None</span>,
+        <span class="prelude-val">None</span>,
+        <span class="prelude-val">None</span>,
+        flight_handler,
+        region_server_handler,
         <span class="prelude-val">None</span>,
         runtime,
     );
     <span class="kw">let </span>_handle = tokio::spawn(<span class="kw">async move </span>{
         Server::builder()
             .add_service(grpc_server.create_flight_service())
-            .add_service(grpc_server.create_database_service())
+            .add_service(grpc_server.create_region_service())
             .serve_with_incoming(futures::stream::iter(<span class="macro">vec!</span>[<span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, std::io::Error&gt;(server)]))
             .<span class="kw">await
     </span>});

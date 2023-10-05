@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/servers/src/http.rs`."><title>http.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="servers" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../servers/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/servers/src/http.rs`."><title>http.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="servers" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../servers/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -917,20 +917,6 @@
 <a href="#917" id="917">917</a>
 <a href="#918" id="918">918</a>
 <a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -945,8 +931,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-</span><span class="kw">mod </span>admin;
-<span class="kw">pub mod </span>authorize;
+</span><span class="kw">pub mod </span>authorize;
 <span class="kw">pub mod </span>handler;
 <span class="kw">pub mod </span>header;
 <span class="kw">pub mod </span>influxdb;
@@ -955,18 +940,19 @@
 <span class="kw">pub mod </span>otlp;
 <span class="kw">mod </span>pprof;
 <span class="kw">pub mod </span>prom_store;
+<span class="kw">pub mod </span>prometheus;
 <span class="kw">pub mod </span>script;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;dashboard&quot;</span>)]
 </span><span class="kw">mod </span>dashboard;
 
 <span class="kw">use </span>std::net::SocketAddr;
-<span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::{Duration, Instant};
 
 <span class="kw">use </span>aide::axum::{routing <span class="kw">as </span>apirouting, ApiRouter, IntoApiResponse};
 <span class="kw">use </span>aide::openapi::{Info, OpenApi, Server <span class="kw">as </span>OpenAPIServer};
 <span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>auth::UserProviderRef;
 <span class="kw">use </span>axum::body::BoxBody;
 <span class="kw">use </span>axum::error_handling::HandleErrorLayer;
 <span class="kw">use </span>axum::extract::{DefaultBodyLimit, MatchedPath};
@@ -985,7 +971,6 @@
 <span class="kw">use </span>schemars::JsonSchema;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>serde_json::Value;
-<span class="kw">use </span>session::context::QueryContext;
 <span class="kw">use </span>snafu::{ensure, ResultExt};
 <span class="kw">use </span>tokio::sync::oneshot::{<span class="self">self</span>, Sender};
 <span class="kw">use </span>tokio::sync::Mutex;
@@ -996,15 +981,17 @@
 
 <span class="kw">use </span><span class="self">self</span>::authorize::HttpAuth;
 <span class="kw">use </span><span class="self">self</span>::influxdb::{influxdb_health, influxdb_ping, influxdb_write_v1, influxdb_write_v2};
-<span class="kw">use </span><span class="kw">crate</span>::auth::UserProviderRef;
 <span class="kw">use </span><span class="kw">crate</span>::configurator::ConfiguratorRef;
 <span class="kw">use </span><span class="kw">crate</span>::error::{AlreadyStartedSnafu, <span class="prelude-ty">Result</span>, StartHttpSnafu};
-<span class="kw">use </span><span class="kw">crate</span>::http::admin::{compact, flush};
+<span class="kw">use </span><span class="kw">crate</span>::http::prometheus::{
+    instant_query, label_values_query, labels_query, range_query, series_query,
+};
 <span class="kw">use </span><span class="kw">crate</span>::metrics::{
-    METRIC_HTTP_REQUESTS_ELAPSED, METRIC_HTTP_REQUESTS_TOTAL, METRIC_METHOD_LABEL,
-    METRIC_PATH_LABEL, METRIC_STATUS_LABEL,
+    METRIC_CODE_LABEL, METRIC_HTTP_REQUESTS_ELAPSED, METRIC_HTTP_REQUESTS_TOTAL,
+    METRIC_METHOD_LABEL, METRIC_PATH_LABEL,
 };
 <span class="kw">use </span><span class="kw">crate</span>::metrics_handler::MetricsHandler;
+<span class="kw">use </span><span class="kw">crate</span>::prometheus_handler::PrometheusHandlerRef;
 <span class="kw">use </span><span class="kw">crate</span>::query_handler::grpc::ServerGrpcQueryHandlerRef;
 <span class="kw">use </span><span class="kw">crate</span>::query_handler::sql::ServerSqlQueryHandlerRef;
 <span class="kw">use </span><span class="kw">crate</span>::query_handler::{
@@ -1012,31 +999,6 @@
     PromStoreProtocolHandlerRef, ScriptHandlerRef,
 };
 <span class="kw">use </span><span class="kw">crate</span>::server::Server;
-
-<span class="doccomment">/// create query context from database name information, catalog and schema are
-/// resolved from the name
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>query_context_from_db(
-    query_handler: ServerSqlQueryHandlerRef,
-    db: <span class="prelude-ty">Option</span>&lt;String&gt;,
-) -&gt; std::result::Result&lt;Arc&lt;QueryContext&gt;, JsonResponse&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(db) = <span class="kw-2">&amp;</span>db {
-        <span class="kw">let </span>(catalog, schema) = <span class="kw">super</span>::parse_catalog_and_schema_from_client_database_name(db);
-
-        <span class="kw">match </span>query_handler.is_valid_schema(catalog, schema).<span class="kw">await </span>{
-            <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(QueryContext::with(catalog, schema)),
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Err</span>(JsonResponse::with_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Database not found: {db}&quot;</span>),
-                StatusCode::DatabaseNotFound,
-            )),
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(JsonResponse::with_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Error checking database: {db}, {e}&quot;</span>),
-                StatusCode::Internal,
-            )),
-        }
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Ok</span>(QueryContext::arc())
-    }
-}
 
 <span class="kw">pub const </span>HTTP_API_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">&quot;v1&quot;</span>;
 <span class="kw">pub const </span>HTTP_API_PREFIX: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/v1/&quot;</span>;
@@ -1054,6 +1016,7 @@
     influxdb_handler: <span class="prelude-ty">Option</span>&lt;InfluxdbLineProtocolHandlerRef&gt;,
     opentsdb_handler: <span class="prelude-ty">Option</span>&lt;OpentsdbProtocolHandlerRef&gt;,
     prom_handler: <span class="prelude-ty">Option</span>&lt;PromStoreProtocolHandlerRef&gt;,
+    prometheus_handler: <span class="prelude-ty">Option</span>&lt;PrometheusHandlerRef&gt;,
     otlp_handler: <span class="prelude-ty">Option</span>&lt;OpenTelemetryProtocolHandlerRef&gt;,
     script_handler: <span class="prelude-ty">Option</span>&lt;ScriptHandlerRef&gt;,
     shutdown_tx: Mutex&lt;<span class="prelude-ty">Option</span>&lt;Sender&lt;()&gt;&gt;&gt;,
@@ -1270,10 +1233,7 @@
                     }
                 },
                 <span class="prelude-val">Err</span>(e) =&gt; {
-                    <span class="kw">return </span><span class="self">Self</span>::with_error(
-                        <span class="macro">format!</span>(<span class="string">&quot;Query engine output error: {e}&quot;</span>),
-                        e.status_code(),
-                    );
+                    <span class="kw">return </span><span class="self">Self</span>::with_error(e.output_msg(), e.status_code());
                 }
             }
         }
@@ -1335,6 +1295,7 @@
                 opentsdb_handler: <span class="prelude-val">None</span>,
                 influxdb_handler: <span class="prelude-val">None</span>,
                 prom_handler: <span class="prelude-val">None</span>,
+                prometheus_handler: <span class="prelude-val">None</span>,
                 otlp_handler: <span class="prelude-val">None</span>,
                 user_provider: <span class="prelude-val">None</span>,
                 script_handler: <span class="prelude-val">None</span>,
@@ -1373,6 +1334,11 @@
 
     <span class="kw">pub fn </span>with_prom_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handler: PromStoreProtocolHandlerRef) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="kw">let _ </span>= <span class="self">self</span>.inner.prom_handler.get_or_insert(handler);
+        <span class="self">self
+    </span>}
+
+    <span class="kw">pub fn </span>with_prometheus_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handler: PrometheusHandlerRef) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="kw">let _ </span>= <span class="self">self</span>.inner.prometheus_handler.get_or_insert(handler);
         <span class="self">self
     </span>}
 
@@ -1435,13 +1401,6 @@
             router = router.nest(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;/{HTTP_API_VERSION}&quot;</span>), sql_router);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(grpc_handler) = <span class="self">self</span>.grpc_handler.clone() {
-            router = router.nest(
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;/{HTTP_API_VERSION}/admin&quot;</span>),
-                <span class="self">self</span>.route_admin(grpc_handler.clone()),
-            );
-        }
-
         <span class="kw">if let </span><span class="prelude-val">Some</span>(opentsdb_handler) = <span class="self">self</span>.opentsdb_handler.clone() {
             router = router.nest(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;/{HTTP_API_VERSION}/opentsdb&quot;</span>),
@@ -1460,6 +1419,13 @@
             router = router.nest(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;/{HTTP_API_VERSION}/prometheus&quot;</span>),
                 <span class="self">self</span>.route_prom(prom_handler),
+            );
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prometheus_handler) = <span class="self">self</span>.prometheus_handler.clone() {
+            router = router.nest(
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;/{HTTP_API_VERSION}/prometheus/api/v1&quot;</span>),
+                <span class="self">self</span>.route_prometheus(prometheus_handler),
             );
         }
 
@@ -1574,6 +1540,19 @@
             .with_state(api_state)
     }
 
+    <span class="kw">fn </span>route_prometheus&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, prometheus_handler: PrometheusHandlerRef) -&gt; Router&lt;S&gt; {
+        Router::new()
+            .route(<span class="string">&quot;/query&quot;</span>, routing::post(instant_query).get(instant_query))
+            .route(<span class="string">&quot;/query_range&quot;</span>, routing::post(range_query).get(range_query))
+            .route(<span class="string">&quot;/labels&quot;</span>, routing::post(labels_query).get(labels_query))
+            .route(<span class="string">&quot;/series&quot;</span>, routing::post(series_query).get(series_query))
+            .route(
+                <span class="string">&quot;/label/:label_name/values&quot;</span>,
+                routing::get(label_values_query),
+            )
+            .with_state(prometheus_handler)
+    }
+
     <span class="kw">fn </span>route_prom&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, prom_handler: PromStoreProtocolHandlerRef) -&gt; Router&lt;S&gt; {
         Router::new()
             .route(<span class="string">&quot;/write&quot;</span>, routing::post(prom_store::remote_write))
@@ -1600,13 +1579,6 @@
         Router::new()
             .route(<span class="string">&quot;/v1/metrics&quot;</span>, routing::post(otlp::metrics))
             .with_state(otlp_handler)
-    }
-
-    <span class="kw">fn </span>route_admin&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, grpc_handler: ServerGrpcQueryHandlerRef) -&gt; Router&lt;S&gt; {
-        Router::new()
-            .route(<span class="string">&quot;/flush&quot;</span>, routing::post(flush))
-            .route(<span class="string">&quot;/compact&quot;</span>, routing::post(compact))
-            .with_state(grpc_handler)
     }
 
     <span class="kw">fn </span>route_config&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: GreptimeOptionsConfigState) -&gt; ApiRouter&lt;S&gt; {
@@ -1636,7 +1608,7 @@
     <span class="kw">let </span>labels = [
         (METRIC_METHOD_LABEL, method.to_string()),
         (METRIC_PATH_LABEL, path),
-        (METRIC_STATUS_LABEL, status),
+        (METRIC_CODE_LABEL, status),
     ];
 
     <span class="macro">metrics::increment_counter!</span>(METRIC_HTTP_REQUESTS_TOTAL, <span class="kw-2">&amp;</span>labels);

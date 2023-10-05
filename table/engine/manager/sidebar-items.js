@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"static":["CALLSITE"],"struct":["MemoryTableEngineManager"],"trait":["TableEngineManager"],"type":["TableEngineManagerRef"]};

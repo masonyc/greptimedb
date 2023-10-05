@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"static":["CALLSITE"],"struct":["MockChunkReader","MockEngine","MockRegion","MockRegionInner","MockSnapshot","RegionManager"],"type":["MockMemtable","RegionMap","Result"]};

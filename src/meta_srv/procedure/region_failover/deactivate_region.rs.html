@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/meta-srv/src/procedure/region_failover/deactivate_region.rs`."><title>deactivate_region.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="meta_srv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (a368898de 2023-05-02)" data-search-js="search-618e954b235f6acc.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../meta_srv/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/meta-srv/src/procedure/region_failover/deactivate_region.rs`."><title>deactivate_region.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="meta_srv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (f3623871c 2023-08-06)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../meta_srv/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -293,7 +293,7 @@
 <span class="kw">use </span>common_meta::instruction::{Instruction, InstructionReply, SimpleReply};
 <span class="kw">use </span>common_meta::peer::Peer;
 <span class="kw">use </span>common_meta::RegionIdent;
-<span class="kw">use </span>common_telemetry::debug;
+<span class="kw">use </span>common_telemetry::{debug, info, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>snafu::ResultExt;
 
@@ -302,31 +302,24 @@
 <span class="kw">use </span><span class="kw">crate</span>::error::{
     Error, <span class="prelude-ty">Result</span>, RetryLaterSnafu, SerializeToJsonSnafu, UnexpectedInstructionReplySnafu,
 };
-<span class="kw">use </span><span class="kw">crate</span>::handler::region_lease_handler::REGION_LEASE_SECONDS;
 <span class="kw">use </span><span class="kw">crate</span>::handler::HeartbeatMailbox;
-<span class="kw">use </span><span class="kw">crate</span>::inactive_node_manager::InactiveNodeManager;
-<span class="kw">use </span><span class="kw">crate</span>::procedure::region_failover::CLOSE_REGION_MESSAGE_TIMEOUT;
+<span class="kw">use </span><span class="kw">crate</span>::inactive_region_manager::InactiveRegionManager;
 <span class="kw">use </span><span class="kw">crate</span>::service::mailbox::{Channel, MailboxReceiver};
 
 <span class="attr">#[derive(Serialize, Deserialize, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>DeactivateRegion {
     candidate: Peer,
-    region_lease_expiry_seconds: u64,
 }
 
 <span class="kw">impl </span>DeactivateRegion {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(candidate: Peer) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            candidate,
-            region_lease_expiry_seconds: REGION_LEASE_SECONDS * <span class="number">2</span>,
-        }
+        <span class="self">Self </span>{ candidate }
     }
 
     <span class="kw">async fn </span>send_close_region_message(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>RegionFailoverContext,
         failed_region: <span class="kw-2">&amp;</span>RegionIdent,
-        timeout: Duration,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;MailboxReceiver&gt; {
         <span class="kw">let </span>instruction = Instruction::CloseRegion(failed_region.clone());
 
@@ -341,16 +334,22 @@
             input: instruction.to_string(),
         })<span class="question-mark">?</span>;
 
-        InactiveNodeManager::new(<span class="kw-2">&amp;</span>ctx.in_memory)
+        <span class="kw">let </span>ch = Channel::Datanode(failed_region.datanode_id);
+        <span class="comment">// Mark the region as inactive
+        </span>InactiveRegionManager::new(<span class="kw-2">&amp;</span>ctx.in_memory)
             .register_inactive_region(failed_region)
             .<span class="kw">await</span><span class="question-mark">?</span>;
-
-        <span class="kw">let </span>ch = Channel::Datanode(failed_region.datanode_id);
+        <span class="comment">// We first marked the region as inactive, which means that the failed region cannot
+        // be successfully renewed from now on, so after the lease time is exceeded, the region
+        // will be automatically closed.
+        // If the deadline is exceeded, we can proceed to the next step with confidence,
+        // as the expiration means that the region has been closed.
+        </span><span class="kw">let </span>timeout = Duration::from_secs(ctx.region_lease_secs);
         ctx.mailbox.send(<span class="kw-2">&amp;</span>ch, msg, timeout).<span class="kw">await
     </span>}
 
     <span class="kw">async fn </span>handle_response(
-        <span class="self">self</span>,
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>RegionFailoverContext,
         mailbox_receiver: MailboxReceiver,
         failed_region: <span class="kw-2">&amp;</span>RegionIdent,
@@ -363,15 +362,16 @@
                 <span class="kw">let </span>InstructionReply::CloseRegion(SimpleReply { result, error }) = reply <span class="kw">else </span>{
                     <span class="kw">return </span>UnexpectedInstructionReplySnafu {
                         mailbox_message: msg.to_string(),
-                        reason: <span class="string">&quot;expect close region reply&quot;
-                    </span>}.fail();
+                        reason: <span class="string">&quot;expect close region reply&quot;</span>,
+                    }
+                    .fail();
                 };
                 <span class="kw">if </span>result {
-                    InactiveNodeManager::new(<span class="kw-2">&amp;</span>ctx.in_memory)
+                    InactiveRegionManager::new(<span class="kw-2">&amp;</span>ctx.in_memory)
                         .deregister_inactive_region(failed_region)
                         .<span class="kw">await</span><span class="question-mark">?</span>;
 
-                    <span class="prelude-val">Ok</span>(Box::new(ActivateRegion::new(<span class="self">self</span>.candidate)))
+                    <span class="prelude-val">Ok</span>(Box::new(ActivateRegion::new(<span class="self">self</span>.candidate.clone())))
                 } <span class="kw">else </span>{
                     <span class="comment">// Under rare circumstances would a Datanode fail to close a Region.
                     // So simply retry.
@@ -382,12 +382,12 @@
                     RetryLaterSnafu { reason }.fail()
                 }
             }
-            <span class="prelude-val">Err</span>(e) <span class="kw">if </span><span class="macro">matches!</span>(e, Error::MailboxTimeout { .. }) =&gt; {
-                <span class="comment">// Since we are in a region failover situation, the Datanode that the failed region
-                // resides might be unreachable. So we wait for the region lease to expire. The
-                // region would be closed by its own [RegionAliveKeeper].
-                </span><span class="self">self</span>.wait_for_region_lease_expiry().<span class="kw">await</span>;
-                <span class="prelude-val">Ok</span>(Box::new(ActivateRegion::new(<span class="self">self</span>.candidate)))
+            <span class="prelude-val">Err</span>(Error::MailboxTimeout { .. }) =&gt; {
+                <span class="comment">// We have configured the timeout to match the region lease timeout before making
+                // the call and have disabled region lease renewal. Therefore, if a timeout error
+                // occurs, it can be concluded that the region has been closed. With this information,
+                // we can proceed confidently to the next step.
+                </span><span class="prelude-val">Ok</span>(Box::new(ActivateRegion::new(<span class="self">self</span>.candidate.clone())))
             }
             <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
         }
@@ -396,8 +396,8 @@
     <span class="doccomment">/// Sleep for `region_lease_expiry_seconds`, to make sure the region is closed (by its
     /// region alive keeper). This is critical for region not being opened in multiple Datanodes
     /// simultaneously.
-    </span><span class="kw">async fn </span>wait_for_region_lease_expiry(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        tokio::time::sleep(Duration::from_secs(<span class="self">self</span>.region_lease_expiry_seconds)).<span class="kw">await</span>;
+    </span><span class="kw">async fn </span>wait_for_region_lease_expiry(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>RegionFailoverContext) {
+        tokio::time::sleep(Duration::from_secs(ctx.region_lease_secs)).<span class="kw">await</span>;
     }
 }
 
@@ -405,19 +405,22 @@
 #[typetag::serde]
 </span><span class="kw">impl </span>State <span class="kw">for </span>DeactivateRegion {
     <span class="kw">async fn </span>next(
-        <span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;,
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>RegionFailoverContext,
         failed_region: <span class="kw-2">&amp;</span>RegionIdent,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>State&gt;&gt; {
-        <span class="kw">let </span>result = <span class="self">self
-            </span>.send_close_region_message(ctx, failed_region, CLOSE_REGION_MESSAGE_TIMEOUT)
-            .<span class="kw">await</span>;
+        <span class="macro">info!</span>(<span class="string">&quot;Deactivating region: {failed_region:?}&quot;</span>);
+        <span class="kw">let </span>result = <span class="self">self</span>.send_close_region_message(ctx, failed_region).<span class="kw">await</span>;
         <span class="kw">let </span>mailbox_receiver = <span class="kw">match </span>result {
             <span class="prelude-val">Ok</span>(mailbox_receiver) =&gt; mailbox_receiver,
-            <span class="prelude-val">Err</span>(e) <span class="kw">if </span><span class="macro">matches!</span>(e, Error::PusherNotFound { .. }) =&gt; {
+            <span class="prelude-val">Err</span>(Error::PusherNotFound { .. }) =&gt; {
+                <span class="macro">warn!</span>(
+                    <span class="string">&quot;Datanode {} is not reachable, skip deactivating region {}, just wait for the region lease to expire&quot;</span>,
+                    failed_region.datanode_id, failed_region
+                );
                 <span class="comment">// See the mailbox received timeout situation comments above.
-                </span><span class="self">self</span>.wait_for_region_lease_expiry().<span class="kw">await</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(Box::new(ActivateRegion::new(<span class="self">self</span>.candidate)));
+                </span><span class="self">self</span>.wait_for_region_lease_expiry(ctx).<span class="kw">await</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(Box::new(ActivateRegion::new(<span class="self">self</span>.candidate.clone())));
             }
             <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
         };
@@ -444,7 +447,7 @@
 
         <span class="kw">let </span>state = DeactivateRegion::new(Peer::new(<span class="number">2</span>, <span class="string">&quot;&quot;</span>));
         <span class="kw">let </span>mailbox_receiver = state
-            .send_close_region_message(<span class="kw-2">&amp;</span>env.context, <span class="kw-2">&amp;</span>failed_region, Duration::from_millis(<span class="number">100</span>))
+            .send_close_region_message(<span class="kw-2">&amp;</span>env.context, <span class="kw-2">&amp;</span>failed_region)
             .<span class="kw">await
             </span>.unwrap();
 
@@ -497,7 +500,7 @@
             </span>.unwrap();
         <span class="macro">assert_eq!</span>(
             <span class="macro">format!</span>(<span class="string">&quot;{next_state:?}&quot;</span>),
-            <span class="string">r#&quot;ActivateRegion { candidate: Peer { id: 2, addr: &quot;&quot; } }&quot;#
+            <span class="string">r#&quot;ActivateRegion { candidate: Peer { id: 2, addr: &quot;&quot; }, remark_inactive_region: false, region_storage_path: None }&quot;#
         </span>);
     }
 
@@ -508,12 +511,9 @@
         <span class="kw">let </span><span class="kw-2">mut </span>env = TestingEnvBuilder::new().build().<span class="kw">await</span>;
         <span class="kw">let </span>failed_region = env.failed_region(<span class="number">1</span>).<span class="kw">await</span>;
 
-        <span class="kw">let </span>state = DeactivateRegion {
-            candidate: Peer::new(<span class="number">2</span>, <span class="string">&quot;&quot;</span>),
-            region_lease_expiry_seconds: <span class="number">2</span>,
-        };
+        <span class="kw">let </span>state = DeactivateRegion::new(Peer::new(<span class="number">2</span>, <span class="string">&quot;&quot;</span>));
         <span class="kw">let </span>mailbox_receiver = state
-            .send_close_region_message(<span class="kw-2">&amp;</span>env.context, <span class="kw-2">&amp;</span>failed_region, Duration::from_millis(<span class="number">100</span>))
+            .send_close_region_message(<span class="kw-2">&amp;</span>env.context, <span class="kw-2">&amp;</span>failed_region)
             .<span class="kw">await
             </span>.unwrap();
 
@@ -542,7 +542,7 @@
         <span class="comment">// Timeout or not, proceed to `ActivateRegion`.
         </span><span class="macro">assert_eq!</span>(
             <span class="macro">format!</span>(<span class="string">&quot;{next_state:?}&quot;</span>),
-            <span class="string">r#&quot;ActivateRegion { candidate: Peer { id: 2, addr: &quot;&quot; } }&quot;#
+            <span class="string">r#&quot;ActivateRegion { candidate: Peer { id: 2, addr: &quot;&quot; }, remark_inactive_region: false, region_storage_path: None }&quot;#
         </span>);
     }
 }
