@@ -615,6 +615,11 @@
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
 <a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2023 Greptime Team
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -635,7 +640,7 @@
 <span class="kw">use </span>catalog::CatalogManagerRef;
 <span class="kw">use </span>clap::Parser;
 <span class="kw">use </span>common_base::Plugins;
-<span class="kw">use </span>common_config::{kv_store_dir, KvStoreConfig, WalConfig};
+<span class="kw">use </span>common_config::{metadata_store_dir, KvStoreConfig, WalConfig};
 <span class="kw">use </span>common_meta::cache_invalidator::DummyKvCacheInvalidator;
 <span class="kw">use </span>common_meta::kv_backend::KvBackendRef;
 <span class="kw">use </span>common_procedure::ProcedureManagerRef;
@@ -661,7 +666,6 @@
     IllegalConfigSnafu, InitMetadataSnafu, <span class="prelude-ty">Result</span>, ShutdownDatanodeSnafu, ShutdownFrontendSnafu,
     StartDatanodeSnafu, StartFrontendSnafu,
 };
-<span class="kw">use </span><span class="kw">crate</span>::frontend::load_frontend_plugins;
 <span class="kw">use </span><span class="kw">crate</span>::options::{MixOptions, Options, TopLevelOptions};
 
 <span class="attr">#[derive(Parser)]
@@ -713,7 +717,7 @@
     <span class="kw">pub </span>prom_store: PromStoreOptions,
     <span class="kw">pub </span>wal: WalConfig,
     <span class="kw">pub </span>storage: StorageConfig,
-    <span class="kw">pub </span>kv_store: KvStoreConfig,
+    <span class="kw">pub </span>metadata_store: KvStoreConfig,
     <span class="kw">pub </span>procedure: ProcedureConfig,
     <span class="kw">pub </span>logging: LoggingOptions,
     <span class="doccomment">/// Options for different store engines.
@@ -734,7 +738,7 @@
             prom_store: PromStoreOptions::default(),
             wal: WalConfig::default(),
             storage: StorageConfig::default(),
-            kv_store: KvStoreConfig::default(),
+            metadata_store: KvStoreConfig::default(),
             procedure: ProcedureConfig::default(),
             logging: LoggingOptions::default(),
             region_engine: <span class="macro">vec!</span>[
@@ -895,7 +899,7 @@
         <span class="kw">if </span><span class="self">self</span>.influxdb_enable {
             opts.influxdb.enable = <span class="self">self</span>.influxdb_enable;
         }
-        <span class="kw">let </span>kv_store = opts.kv_store.clone();
+        <span class="kw">let </span>metadata_store = opts.metadata_store.clone();
         <span class="kw">let </span>procedure = opts.procedure.clone();
         <span class="kw">let </span>frontend = opts.clone().frontend_options();
         <span class="kw">let </span>logging = opts.logging.clone();
@@ -903,7 +907,7 @@
 
         <span class="prelude-val">Ok</span>(Options::Standalone(Box::new(MixOptions {
             procedure,
-            kv_store,
+            metadata_store,
             data_home: datanode.storage.data_home.to_string(),
             frontend,
             datanode,
@@ -915,8 +919,11 @@
     #[allow(unused_variables)]
     #[allow(clippy::diverging_sub_expression)]
     </span><span class="kw">async fn </span>build(<span class="self">self</span>, opts: MixOptions) -&gt; <span class="prelude-ty">Result</span>&lt;Instance&gt; {
-        <span class="kw">let </span>plugins = Arc::new(load_frontend_plugins(<span class="kw-2">&amp;</span><span class="self">self</span>.user_provider)<span class="question-mark">?</span>);
-        <span class="kw">let </span>fe_opts = opts.frontend;
+        <span class="kw">let </span><span class="kw-2">mut </span>fe_opts = opts.frontend;
+        <span class="kw">let </span>fe_plugins = plugins::setup_frontend_plugins(<span class="kw-2">&amp;mut </span>fe_opts)
+            .<span class="kw">await
+            </span>.context(StartFrontendSnafu)<span class="question-mark">?</span>;
+
         <span class="kw">let </span>dn_opts = opts.datanode;
 
         <span class="macro">info!</span>(<span class="string">&quot;Standalone start command: {:#?}&quot;</span>, <span class="self">self</span>);
@@ -925,14 +932,17 @@
             fe_opts, dn_opts
         );
 
-        <span class="kw">let </span>kv_dir = kv_store_dir(<span class="kw-2">&amp;</span>opts.data_home);
-        <span class="kw">let </span>(kv_store, procedure_manager) =
-            FeInstance::try_build_standalone_components(kv_dir, opts.kv_store, opts.procedure)
-                .<span class="kw">await
-                </span>.context(StartFrontendSnafu)<span class="question-mark">?</span>;
+        <span class="kw">let </span>metadata_dir = metadata_store_dir(<span class="kw-2">&amp;</span>opts.data_home);
+        <span class="kw">let </span>(kv_store, procedure_manager) = FeInstance::try_build_standalone_components(
+            metadata_dir,
+            opts.metadata_store,
+            opts.procedure,
+        )
+        .<span class="kw">await
+        </span>.context(StartFrontendSnafu)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>datanode =
-            DatanodeBuilder::new(dn_opts.clone(), <span class="prelude-val">Some</span>(kv_store.clone()), plugins.clone())
+            DatanodeBuilder::new(dn_opts.clone(), <span class="prelude-val">Some</span>(kv_store.clone()), Default::default())
                 .build()
                 .<span class="kw">await
                 </span>.context(StartDatanodeSnafu)<span class="question-mark">?</span>;
@@ -952,7 +962,7 @@
 
         <span class="comment">// TODO: build frontend instance like in distributed mode
         </span><span class="kw">let </span><span class="kw-2">mut </span>frontend = build_frontend(
-            plugins,
+            fe_plugins,
             kv_store,
             procedure_manager,
             catalog_manager,
@@ -971,7 +981,7 @@
 
 <span class="doccomment">/// Build frontend instance in standalone mode
 </span><span class="kw">async fn </span>build_frontend(
-    plugins: Arc&lt;Plugins&gt;,
+    plugins: Plugins,
     kv_store: KvBackendRef,
     procedure_manager: ProcedureManagerRef,
     catalog_manager: CatalogManagerRef,
@@ -1005,13 +1015,13 @@
 
     <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>test_try_from_start_command_to_anymap() {
-        <span class="kw">let </span>command = StartCommand {
+        <span class="kw">let </span><span class="kw-2">mut </span>fe_opts = FrontendOptions {
             user_provider: <span class="prelude-val">Some</span>(<span class="string">&quot;static_user_provider:cmd:test=test&quot;</span>.to_string()),
             ..Default::default()
         };
 
-        <span class="kw">let </span>plugins = load_frontend_plugins(<span class="kw-2">&amp;</span>command.user_provider);
-        <span class="kw">let </span>plugins = plugins.unwrap();
+        <span class="kw">let </span>plugins = plugins::setup_frontend_plugins(<span class="kw-2">&amp;mut </span>fe_opts).<span class="kw">await</span>.unwrap();
+
         <span class="kw">let </span>provider = plugins.get::&lt;UserProviderRef&gt;().unwrap();
         <span class="kw">let </span>result = provider
             .authenticate(
@@ -1226,7 +1236,7 @@
         <span class="macro">assert_eq!</span>(options.influxdb, default_options.influxdb);
         <span class="macro">assert_eq!</span>(options.prom_store, default_options.prom_store);
         <span class="macro">assert_eq!</span>(options.wal, default_options.wal);
-        <span class="macro">assert_eq!</span>(options.kv_store, default_options.kv_store);
+        <span class="macro">assert_eq!</span>(options.metadata_store, default_options.metadata_store);
         <span class="macro">assert_eq!</span>(options.procedure, default_options.procedure);
         <span class="macro">assert_eq!</span>(options.logging, default_options.logging);
         <span class="macro">assert_eq!</span>(options.region_engine, default_options.region_engine);
